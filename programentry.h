@@ -5,7 +5,7 @@
 
 class programEntry{
 public:
-	programEntry(QListWidgetItem *item, int vibrance = 0);
+	programEntry(QListWidgetItem *item, QString path, int vibrance = 0);
 	programEntry(programEntry &other) = delete;
 	programEntry(programEntry &&other) noexcept;
 	~programEntry();
@@ -38,7 +38,6 @@ public:
 
 	QString toJson();
 
-public:
 	QString path;
 	int vibrance;
 private:

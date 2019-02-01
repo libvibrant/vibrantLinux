@@ -1,8 +1,6 @@
 #include "programentry.h"
 
-#include <iostream>
-
-programEntry::programEntry(QListWidgetItem *item, int vibrance){
+programEntry::programEntry(QListWidgetItem *item, QString path, int vibrance){
 	this->vibrance = vibrance;
 	if(this->vibrance > 1023){
 		this->vibrance = 1023;
@@ -11,7 +9,7 @@ programEntry::programEntry(QListWidgetItem *item, int vibrance){
 		this->vibrance = -1024;
 	}
 
-	this->path = item->text();
+	this->path = path;
 	this->item = item;
 }
 

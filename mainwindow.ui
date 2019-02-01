@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>409</width>
-    <height>427</height>
+    <width>425</width>
+    <height>404</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>mainWindow</string>
+   <string>Vibrant Linux</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="font">
@@ -20,17 +20,55 @@
     </font>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QLabel" name="vibranceLabel">
+    <item row="1" column="1">
+     <widget class="QPushButton" name="donate">
       <property name="text">
-       <string>Vibrance</string>
+       <string>Donate!</string>
       </property>
      </widget>
     </item>
-    <item row="6" column="0" colspan="2">
+    <item row="7" column="0">
+     <widget class="QPushButton" name="applyVibrance">
+      <property name="text">
+       <string>Apply</string>
+      </property>
+     </widget>
+    </item>
+    <item row="9" column="0" colspan="2">
      <widget class="QListWidget" name="programs"/>
     </item>
-    <item row="3" column="0">
+    <item row="1" column="0">
+     <widget class="QLabel" name="donateText">
+      <property name="text">
+       <string>Like the program? Consider donating!</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="1">
+     <widget class="QPushButton" name="delProgram">
+      <property name="text">
+       <string>Remove program</string>
+      </property>
+     </widget>
+    </item>
+    <item row="8" column="0">
+     <widget class="QPushButton" name="addProgram">
+      <property name="text">
+       <string>Add program</string>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="1">
+     <widget class="QSpinBox" name="vibranceVal">
+      <property name="minimum">
+       <number>-1024</number>
+      </property>
+      <property name="maximum">
+       <number>1023</number>
+      </property>
+     </widget>
+    </item>
+    <item row="6" column="0">
      <widget class="QSlider" name="vibranceSldr">
       <property name="minimum">
        <number>-1024</number>
@@ -43,48 +81,17 @@
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QPushButton" name="donate">
-      <property name="text">
-       <string>Donate!</string>
-      </property>
-     </widget>
-    </item>
     <item row="5" column="0">
-     <widget class="QPushButton" name="addProgram">
+     <widget class="QLabel" name="vibranceLabel">
       <property name="text">
-       <string>Add program</string>
+       <string>Vibrance</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="1">
-     <widget class="QPushButton" name="delProgram">
-      <property name="text">
-       <string>Remove program</string>
-      </property>
-     </widget>
-    </item>
-    <item row="4" column="0">
-     <widget class="QPushButton" name="applyVibrance">
-      <property name="text">
-       <string>Apply</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLabel" name="donateText">
-      <property name="text">
-       <string>Do you Like the program? Please consider donating!</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QSpinBox" name="vibranceVal">
-      <property name="minimum">
-       <number>-1024</number>
-      </property>
-      <property name="maximum">
-       <number>1023</number>
+    <item row="4" column="0" colspan="2">
+     <widget class="QTabWidget" name="displays">
+      <property name="currentIndex">
+       <number>-1</number>
       </property>
      </widget>
     </item>
@@ -95,11 +102,29 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>409</width>
+     <width>425</width>
      <height>20</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuOptions">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="actionSend_to_tray"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <addaction name="menuOptions"/>
   </widget>
+  <action name="actionSend_to_tray">
+   <property name="text">
+    <string>Send to tray</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

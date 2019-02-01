@@ -5,21 +5,8 @@
 #include <string>
 #include <vector>
 
-enum class gpuVendor{
-	nvidia,
-	amd,
-	intel,
-	unkown
-};
-
-struct device{
-	gpuVendor vendor = gpuVendor::unkown;
-	size_t deviceId;
-};
-
-void findDevices(std::vector<device> &devices);
-void findDevicesNvidia(std::vector<device> &devices);
-void findDevicesAmd(std::vector<device> &devices);
-void findDevicesIntel(std::vector<device> &devices);
+bool systemHasNvidia();
+bool systemHasAmd();
+bool systemHasIntel();
 
 #endif // DEVICE_H
