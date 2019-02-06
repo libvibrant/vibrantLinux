@@ -3,5 +3,5 @@ git reset --hard
 git pull
 qmake
 make
-rm *.o *.cpp *.ui *.pro* Makefile README.md
+rm *.o *.h *.cpp *.ui *.pro* Makefile README.md
 
