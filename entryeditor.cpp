@@ -1,17 +1,18 @@
 #include "entryeditor.h"
 #include "ui_entryeditor.h"
 
-entryEditor::entryEditor(programEntry *entry, QWidget *parent) : QDialog(parent), ui(new Ui::entryEditor), entry(entry){
+entryEditor::entryEditor(QListWidgetItem *entry, QWidget *parent) : QDialog(parent), ui(new Ui::entryEditor), entry(entry){
 	if(entry == nullptr){
 		throw std::runtime_error("entryEditor was given a nullptr in constructor");
 	}
-
 	ui->setupUi(this);
-	ui->vibranceVal->setValidator(new QIntValidator(-1024, 1023, this));
 
-	ui->path->setText(entry->path);
-	ui->vibranceSldr->setValue(entry->vibrance);
-	ui->vibranceVal->setText(QString::number(entry->vibrance));
+	ui->path->setText(itemPath(entry));
+	displays = displayTab::getDisplays();
+	for(auto &dpy: displays){
+		dpy.setVibrance(itemVibrance(entry, dpy.getName()));
+		ui->displays->addTab((QWidget*)dpy, dpy.getName());
+	}
 }
 
 entryEditor::~entryEditor(){
@@ -28,14 +29,10 @@ void entryEditor::on_pathSelect_clicked(){
 }
 
 void entryEditor::on_buttonBox_accepted(){
-	entry->path = ui->path->text();
-	entry->vibrance = ui->vibranceSldr->value();
-}
-
-void entryEditor::on_vibranceSldr_valueChanged(int value){
-	ui->vibranceVal->setText(QString::number(value));
-}
-
-void entryEditor::on_vibranceVal_editingFinished(){
-	ui->vibranceSldr->setValue(ui->vibranceVal->text().toInt());
+	setItemPath(entry, ui->path->text());
+	QMap<QString, int> map;
+	for(auto &dpy: displays){
+		map.insert(dpy.getName(), dpy.getVibrance());
+	}
+	setItemMap(entry, map);
 }

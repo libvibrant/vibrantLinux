@@ -1,7 +1,6 @@
 #ifndef PROCMONITOR_H
 #define PROCMONITOR_H
 
-#include <filesystem>
 #include <vector>
 #include <fstream>
 
@@ -9,8 +8,12 @@
 #include <linux/limits.h>
 
 #include <QString>
+#include <QDir>
+#include <QFile>
+#include <QStringList>
+#include <QListWidgetItem>
 
-#include "programentry.h"
+#include "displaytab.h"
 
 
 /*
@@ -42,9 +45,8 @@ public:
 
 	void update();
 	//if this returns defaultVibrance it means no programs in the watch list are running
-	int getVibrance(std::vector<programEntry> &watchList);
+	QListWidgetItem *getVibrance(QListWidget *&watchList);
 
-	static const int defaultVibrance = 1024;
 private:
 	std::vector<process> processes;
 };

@@ -12,14 +12,12 @@
 #include <QDesktopServices>
 #include <QTimer>
 #include <QSystemTrayIcon>
+#include <QMap>
 
-#include <filesystem>
-
-#include "device.h"
-#include "programentry.h"
+#include "utils.h"
 #include "entryeditor.h"
 #include "procmonitor.h"
-#include "display.h"
+#include "displaytab.h"
 
 namespace Ui {
 class mainWindow;
@@ -33,38 +31,29 @@ public:
 	~mainWindow();
 
 private:
-	void applyVibrance(int vibrance);
-	void addEntry(QString label, int vibrance = 0);
-	void deleteEntry(QListWidgetItem *item);
-	QString programName(QString path);
+	void addEntry(QString path);
+	void addEntry(QString path, QMap<QString, int> vibrance);
+	void removeEntry(QListWidgetItem *item);
 
 private slots:
 	void updateVibrance();
 
-	void on_vibranceSldr_valueChanged(int value);
-	void on_vibranceVal_valueChanged(int value);
-	void on_applyVibrance_clicked();
 	void on_addProgram_clicked();
 	void on_delProgram_clicked();
 	void on_programs_doubleClicked(const QModelIndex &index);
 	void on_actionSend_to_tray_triggered();
-	void on_actionExit_triggered();
 	void on_donate_clicked();
 
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
 private:
 	Ui::mainWindow *ui;
-	std::vector<programEntry> entries;
 	QJsonObject settings;
 	procMonitor monitor;
 	QSystemTrayIcon systray;
 	QTimer *timer = nullptr;
-	int lastVibrance = 0;
-	int defaultVibrance;
 
-	std::vector<display> displays;
-	QWidget *tabs;
+	std::vector<displayTab> displays;
 };
 
 #endif // MAINWINDOW_H
