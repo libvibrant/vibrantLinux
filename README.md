@@ -1,5 +1,7 @@
 # Vibrant Linux
 
+![Main program](assets/program.png)
+![Program vibrance editor](assets/entryeditor.png)
 
 vibrant linux is a gui tool that serves the same purpose as vibrance gui on windows.
 
