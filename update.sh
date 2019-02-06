@@ -1,5 +1,7 @@
 #!/bin/sh
 git reset --hard
 git pull
-./build.sh
+qmake
+make
+rm *.o *.cpp *.ui *.pro* Makefile README.md
 
