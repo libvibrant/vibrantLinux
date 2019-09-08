@@ -5,9 +5,6 @@
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
-	systray.setIcon(QIcon(":/assets/icon.png"));
-	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
-
 	displays = displayTab::getDisplays();
 	for(auto &dpy: displays){
 		ui->displays->addTab((QWidget*)dpy, dpy.getName());
@@ -55,6 +52,10 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateVibrance()));
 	timer->start(1000);
+
+	systray.setIcon(QIcon(":/assets/icon.png"));
+	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
+	systray.show();
 }
 
 mainWindow::~mainWindow(){
@@ -154,7 +155,6 @@ void mainWindow::on_programs_doubleClicked(const QModelIndex &index){
 }
 
 void mainWindow::on_actionSend_to_tray_triggered(){
-	systray.show();
 	this->hide();
 }
 
@@ -164,7 +164,8 @@ void mainWindow::on_donate_clicked(){
 
 void mainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason){
 	if(reason == QSystemTrayIcon::ActivationReason::Trigger){
-		systray.hide();
-		this->show();
+		if(!this->isVisible()){
+			this->show();
+		}
 	}
 }

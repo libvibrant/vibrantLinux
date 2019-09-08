@@ -30,6 +30,8 @@ public:
 	explicit mainWindow(QWidget *parent = nullptr);
 	~mainWindow();
 
+	QSystemTrayIcon systray;
+
 private:
 	void addEntry(QString path);
 	void addEntry(QString path, QMap<QString, int> vibrance);
@@ -50,7 +52,6 @@ private:
 	Ui::mainWindow *ui;
 	QJsonObject settings;
 	procMonitor monitor;
-	QSystemTrayIcon systray;
 	QTimer *timer = nullptr;
 
 	std::vector<displayTab> displays;
