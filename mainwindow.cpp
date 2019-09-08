@@ -27,7 +27,6 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 		tmpDisplays.emplace_back();
 		QJsonObject dpy = dpyArr.toObject();
 		tmpDisplays.back().setName(dpy["name"].toString());
-		tmpDisplays.back().setType(strToDisplayType(dpy["type"].toString()));
 		tmpDisplays.back().setVibrance(dpy["vibrance"].toInt());
 	}
 

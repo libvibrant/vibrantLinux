@@ -16,16 +16,6 @@
 
 #include "utils.h"
 
-enum class displayType{
-	nvidia,
-	amd,
-	intel,
-	unkown
-};
-
-QString displayTypeToStr(displayType type);
-displayType strToDisplayType(QString str);
-
 class displayTab : public QWidget{
 	Q_OBJECT
 public:
@@ -47,7 +37,6 @@ public:
 		slider->setValue(other.slider->value());
 		spinBox->setValue(other.spinBox->value());
 		name = other.name;
-		type = other.type;
 		lastVibrance = other.lastVibrance;
 
 		return *this;
@@ -63,7 +52,6 @@ public:
 		slider = other.slider;
 		spinBox = other.spinBox;
 		layout = other.layout;
-		type = other.type;
 		name = std::move(other.name);
 		lastVibrance = other.lastVibrance;
 
@@ -77,7 +65,7 @@ public:
 	}
 
 	bool operator==(const displayTab &other) const{
-		return name == other.name && type == other.type;
+		return name == other.name;
 	}
 
 	void applyVibrance(int vibrance);
@@ -93,8 +81,6 @@ public:
 	QString getName();
 	void setName(QString name);
 
-	displayType getType();
-	void setType(displayType type);
 private:
 	void makeTab(QWidget *parent = nullptr);
 
@@ -106,7 +92,6 @@ private:
 	QLabel *label = nullptr;
 	QSlider *slider = nullptr;
 	QSpinBox *spinBox = nullptr;
-	displayType type;
 	QString name;
 	int lastVibrance = defaultVibrance;
 };

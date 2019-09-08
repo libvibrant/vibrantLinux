@@ -1,22 +1,6 @@
 #include "displaytab.h"
 #include <iostream>
 
-QString displayTypeToStr(displayType type){
-	static char const *translate[] = {"nvidia", "amd", "intel"};
-	return translate[int(type)];
-}
-
-displayType strToDisplayType(QString str){
-	if(str == "nvidia"){
-		return displayType::nvidia;
-	} else if(str == "amd"){
-		return displayType::amd;
-	} else if(str == "intel"){
-		return displayType::intel;
-	}
-	return displayType::unkown;
-}
-
 displayTab::displayTab(QWidget *parent) : QWidget(parent){
 	delete label;
 	delete slider;
@@ -31,7 +15,6 @@ displayTab::displayTab(const displayTab &other) : QWidget (other.parentWidget())
 	slider->setValue(other.slider->value());
 	spinBox->setValue(other.spinBox->value());
 	name = other.name;
-	type = other.type;
 	lastVibrance = other.lastVibrance;
 }
 
@@ -41,7 +24,6 @@ displayTab::displayTab(displayTab &&other) noexcept{
 	slider = other.slider;
 	spinBox = other.spinBox;
 	layout = other.layout;
-	type = other.type;
 	name = std::move(other.name);
 	lastVibrance = other.lastVibrance;
 
@@ -67,11 +49,9 @@ void displayTab::applyVibrance(int vibrance){
 	if(vibrance == lastVibrance){
 		return;
 	}
-	if(type == displayType::nvidia){
-		QString syscall = "nvidia-settings -a ["+name+"]";
-		syscall += "/DigitalVibrance="+QString::number(vibrance);
-		system(syscall.toUtf8());
-	}
+	QString syscall = "nvidia-settings -a ["+name+"]";
+	syscall += "/DigitalVibrance="+QString::number(vibrance);
+	system(syscall.toUtf8());
 	lastVibrance = vibrance;
 }
 
@@ -102,7 +82,6 @@ std::vector<displayTab> displayTab::getDisplays(QWidget *parent){
 
 			tabs.emplace_back(parent);
 			tabs.back().setName(displayName);
-			tabs.back().setType(displayType::nvidia);
 		}
 	}
 	return tabs;
@@ -132,7 +111,6 @@ std::vector<QString> displayTab::getDisplayNames(){
 QString displayTab::toJson(){
 	QString res = "{";
 	res += "\"name\": " + ('\"' + name + '\"') + ",";
-	res += "\"type\": \"" + displayTypeToStr(type) + "\",";
 	res += "\"vibrance\": " + QString::number(spinBox->value());
 	res += "}";
 	return res;
@@ -153,14 +131,6 @@ QString displayTab::getName(){
 
 void displayTab::setName(QString name){
 	this->name = name;
-}
-
-displayType displayTab::getType(){
-	return type;
-}
-
-void displayTab::setType(displayType type){
-	this->type = type;
 }
 
 void displayTab::makeTab(QWidget *parent){

@@ -8,8 +8,6 @@
 #include <QListWidgetItem>
 
 bool systemHasNvidia();
-bool systemHasAmd();
-bool systemHasIntel();
 
 QString programName(QString path);
 
