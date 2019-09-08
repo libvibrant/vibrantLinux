@@ -5,7 +5,7 @@
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
-	systray.setIcon(QIcon("assets/icon.png"));
+	systray.setIcon(QIcon(":/assets/icon.png"));
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
 
 	displays = displayTab::getDisplays();
