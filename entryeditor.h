@@ -28,7 +28,7 @@ private slots:
 private:
 	Ui::entryEditor *ui;
 	QListWidgetItem *entry;
-	std::vector<displayTab> displays;
+	programInfo *entryInfo;
 };
 
 #endif // ENTRYEDITOR_H

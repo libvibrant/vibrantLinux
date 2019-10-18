@@ -1,128 +1,255 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <iostream>
 
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
-	displays = displayTab::getDisplays();
-	for(auto &dpy: displays){
-		ui->displays->addTab((QWidget*)dpy, dpy.getName());
-	}
-
-	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
-	if(!settingsFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-		//create a default json file
-		QDir dir = QDir::homePath();
-		dir.mkdir(".config/vibrantLinux/");
-		return;
-	}
-	settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
-	settingsFile.close();
-
-	std::vector<displayTab> tmpDisplays;
-	QJsonArray displayArr = settings["displays"].toArray();
-	tmpDisplays.resize(size_t(displayArr.size()));
-	for(auto dpyArr: displayArr){
-		tmpDisplays.emplace_back();
-		QJsonObject dpy = dpyArr.toObject();
-		tmpDisplays.back().setName(dpy["name"].toString());
-		tmpDisplays.back().setVibrance(dpy["vibrance"].toInt());
-	}
-
-	//if the monitor setup is the same then copy old settings, else reset everything
-	if(displays == tmpDisplays){
-		displays = tmpDisplays;
-	}
-
-	for(auto progArr: settings["programs"].toArray()){
-		QJsonObject program = progArr.toObject();
-		QString path = program["path"].toString();
-		QMap<QString, int> vibrance;
-		for(auto vibArr: program["vibrance"].toArray()){
-			QJsonObject dpyVibrance = vibArr.toObject();
-			vibrance.insert(dpyVibrance["name"].toString(), dpyVibrance["vibrance"].toInt());
-		}
-		addEntry(path, vibrance);
-	}
-
-	updateVibrance();
-
+	setWindowIcon(QIcon(":/assets/icon.png"));
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateVibrance()));
-	timer->start(1000);
 
 	systray.setIcon(QIcon(":/assets/icon.png"));
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
+
+	systrayMenu = new (std::nothrow) QMenu();
+
+	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
+	//if the file doesn't exist create an empty default one
+	if(!QFile::exists(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal")){
+		QDir dir = QDir::homePath();
+		dir.mkpath(".config/vibrantLinux/");
+		settingsFile.open(QFile::WriteOnly);
+		settingsFile.close();
+		return;
+	}
+	settingsFile.open(QFile::ReadOnly);
+
+	QJsonObject settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
+	settingsFile.close();
+
+	bool sameSetup = true;
+	QJsonArray displayArr = settings["displays"].toArray();
+	QStringList displayNames = displayTab::getDisplayNames();
+
+	if(displayArr.size() == displayNames.size()){
+		for(auto dpyRef: displayArr){
+			if(!displayNames.contains(dpyRef.toObject()["name"].toString())){
+				sameSetup = false;
+				break;
+			}
+		}
+	}
+	else{
+		sameSetup = false;
+	}
+
+	//if the monitor setup is the same then copy old settings, else reset everything
+	if(sameSetup){
+		for(auto dpyRef: displayArr){
+			QJsonObject dpy = dpyRef.toObject();
+
+			displayTab *dpyTab = new (std::nothrow) displayTab(dpy["name"].toString(), ui->displays);
+			if(!dpyTab){
+				displayTab *tmp;
+				while((tmp = dynamic_cast<displayTab*>(ui->displays->widget(0))) != nullptr){
+					ui->displays->removeTab(0);
+					delete tmp;
+				}
+
+				throw std::runtime_error("Failed to allocate memory for display tabs");
+			}
+
+			int vibrance = dpy["vibrance"].toInt();
+			dpyTab->setDefaultVibrance(vibrance);
+			dpyTab->applyVibrance(vibrance);
+			ui->displays->addTab(dpyTab, dpyTab->getName());
+		}
+
+		for(auto programRef: settings["programs"].toArray()){
+			QJsonObject program = programRef.toObject();
+
+			QMap<QString, int> vibranceVals;
+			for(auto dpyVibranceRef: program["vibrance"].toArray()){
+				QJsonObject dpyVibrance = dpyVibranceRef.toObject();
+				vibranceVals.insert(dpyVibrance["name"].toString(), dpyVibrance["vibrance"].toInt());
+			}
+
+			addEntry(program["path"].toString(), vibranceVals);
+		}
+	}
+	else{
+		for(auto name: displayNames){
+			displayTab *dpyTab = new (std::nothrow) displayTab(name, ui->displays);
+			if(!dpyTab){
+				displayTab *tmp;
+				while((tmp = dynamic_cast<displayTab*>(ui->displays->widget(0))) != nullptr){
+					ui->displays->removeTab(0);
+					delete tmp;
+				}
+
+				throw std::runtime_error("Failed to allocate memory for display tabs");
+			}
+
+			int vibrance = dpyTab->getCurrentVibrance();
+			dpyTab->setDefaultVibrance(vibrance);
+			dpyTab->applyVibrance(vibrance);
+			ui->displays->addTab(dpyTab, dpyTab->getName());
+		}
+
+		for(auto programRef: settings["programs"].toArray()){
+			QJsonObject program = programRef.toObject();
+
+			addEntry(program["path"].toString());
+		}
+	}
+
+
 	systray.show();
+	timer->start(1000);
 }
 
 mainWindow::~mainWindow(){
-	QString json = "{\"displays\":[";
-	if(displays.size()){
-		//displays.size()-1 so that the last one is written without the ",\n"
-		for(size_t i = 0; i < displays.size()-1; i++){
-			json += displays[i].toJson()+",";
-		}
-		json += displays.back().toJson();
-	}
-	json += "],";
+	QJsonObject obj;
 
-	json += "\"programs\":[";
-	int count = ui->programs->count();
-	for(int i = 0; i < count-1; i++){
-		json += itemToJson(ui->programs->item(i)) + ',';
+	//convert displays to json array
+	QJsonArray tmpArr;
+	for(int i = 0; i < ui->displays->count(); i++){
+		displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+		QJsonObject tmpObj;
+		tmpObj.insert("name", dpy->getName());
+		tmpObj.insert("vibrance", dpy->getDefaultVibrance());
+
+		tmpArr.append(tmpObj);
 	}
-	//in case of no programs
-	if(count > 0){
-		json += itemToJson(ui->programs->item(count-1));
+	obj.insert("displays", tmpArr);
+
+	//clear array
+	tmpArr = QJsonArray();
+
+	//convert programs to json array
+	for(int i = 0; i < ui->programs->count(); i++){
+		QListWidgetItem *item = ui->programs->item(i);
+		programInfo *info = getItemInfo(item);
+
+		QJsonObject program;
+		QJsonArray programVibrance;
+		program.insert("path", info->path);
+		for(auto i = info->vibranceVals.begin(); i != info->vibranceVals.end(); i++){
+			QJsonObject vibranceObj;
+			vibranceObj.insert("name", i.key());
+			vibranceObj.insert("vibrance", i.value());
+
+			programVibrance.append(vibranceObj);
+		}
+		program.insert("vibrance", programVibrance);
+
+		tmpArr.append(program);
 	}
-	json += "]}\n";
+	obj.insert("programs", tmpArr);
 
 
 	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
 	//conversion auto formats json
 	settingsFile.open(QIODevice::WriteOnly);
-	settingsFile.write(json.toUtf8());
+	settingsFile.write(QJsonDocument(obj).toJson());
+
+	QListWidgetItem *item;
+	while((item = ui->programs->item(0)) != nullptr){
+		removeEntry(item);
+	}
+
 	//destruct vector before displays
-	displays.resize(0);
+	displayTab *dpy;
+	while((dpy = dynamic_cast<displayTab*>(ui->displays->widget(0))) != nullptr){
+		ui->displays->removeTab(0);
+		delete dpy;
+	}
+
+	delete systrayMenu;
 	delete timer;
 	delete ui;
 }
 
-void mainWindow::addEntry(QString path){
-	ui->programs->addItem(programName(path));
-	QMap<QString, int> vibrance;
-	for(auto &dpy: displays){
-		vibrance.insert(dpy.getName(), dpy.getVibrance());
+void mainWindow::addEntry(const QString &path){
+	QMessageBox errorBox;
+
+	//create a new item
+	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
+	if(item == nullptr){
+		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		return;
 	}
-	QListWidgetItem *item = ui->programs->item(ui->programs->count()-1);
-	setItemPath(item, path);
-	setItemMap(item, vibrance);
+
+	//create userdata for the item
+	programInfo *info = new (std::nothrow) programInfo(path);
+	if(info == nullptr){
+		delete item;
+		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		return;
+	}
+
+	//assign a vibrance value to each display
+	for(int i = 0; i < ui->displays->count(); i++){
+		displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(0));
+		info->vibranceVals.insert(dpy->getName(), dpy->getDefaultVibrance());
+	}
+
+	item->setData(Qt::UserRole, QVariant::fromValue(info));
+
+	ui->programs->addItem(item);
 }
 
-void mainWindow::addEntry(QString path, QMap<QString, int> vibrance){
-	ui->programs->addItem(programName(path));
-	QListWidgetItem *item = ui->programs->item(ui->programs->count()-1);
-	setItemPath(item, path);
-	setItemMap(item, vibrance);
+void mainWindow::addEntry(const QString &path, const QMap<QString, int> &vibrance){
+	QMessageBox errorBox;
+
+	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
+	if(item == nullptr){
+		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		return;
+	}
+
+	programInfo *info = new (std::nothrow) programInfo(path, vibrance);
+	if(info == nullptr){
+		delete item;
+		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		return;
+	}
+
+	item->setData(Qt::UserRole, QVariant::fromValue(info));
+
+	ui->programs->addItem(item);
 }
 
 void mainWindow::removeEntry(QListWidgetItem *item){
 	ui->programs->takeItem(ui->programs->row(item));
+
+	delete getItemInfo(item);
+	delete item;
 }
 
 void mainWindow::updateVibrance(){
 	monitor.update();
 	QListWidgetItem *program = monitor.getVibrance(ui->programs);
+
 	if(program == nullptr){
-		for(displayTab &dpy: displays){
-			dpy.applyVibrance(displayTab::defaultVibrance);
+		for(int i = 0; i < ui->displays->count(); i++){
+			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+
+			int vibrance = dpy->getDefaultVibrance();
+			if(dpy->getCurrentVibrance() != vibrance){
+				dpy->applyVibrance(vibrance);
+			}
 		}
-		return;
 	}
-	for(displayTab &dpy: displays){
-		dpy.applyVibrance(itemVibrance(program, dpy.getName()));
+	else{
+		for(int i = 0; i < ui->displays->count(); i++){
+			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+
+			int vibrance = *getItemDpyVibrance(program, dpy->getName());
+			if(dpy->getCurrentVibrance() != vibrance){
+				dpy->applyVibrance(vibrance);
+			}
+		}
 	}
 }
 
@@ -137,24 +264,27 @@ void mainWindow::on_addProgram_clicked(){
 }
 
 void mainWindow::on_delProgram_clicked(){
-	for(auto target: ui->programs->selectedItems()){
-		for(int i = 0; i < ui->programs->count(); i++){
-			if(ui->programs->item(i) == target){
-				ui->programs->takeItem(i);
-				break;
-			}
-		}
-	}
+	removeEntry(ui->programs->selectedItems()[0]);
 }
 
 void mainWindow::on_programs_doubleClicked(const QModelIndex &index){
 	QListWidgetItem *item = ui->programs->item(index.row());
-	entryEditor editor(item);
+	entryEditor editor(item, this);
 	editor.exec();
 }
 
-void mainWindow::on_actionSend_to_tray_triggered(){
-	this->hide();
+void mainWindow::on_actionShowHideWindowtriggered(){
+	if(isVisible()){
+		hide();
+	}
+	else{
+		show();
+	}
+}
+
+void mainWindow::on_actionExit_triggered(){
+	systray.hide();
+	close();
 }
 
 void mainWindow::on_donate_clicked(){
@@ -163,8 +293,8 @@ void mainWindow::on_donate_clicked(){
 
 void mainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason){
 	if(reason == QSystemTrayIcon::ActivationReason::Trigger){
-		if(!this->isVisible()){
-			this->show();
+		if(!isVisible()){
+			show();
 		}
 	}
 }

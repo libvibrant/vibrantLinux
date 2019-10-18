@@ -1,29 +1,21 @@
-#ifndef DEVICE_H
-#define DEVICE_H
+#ifndef UTILS_H
+#define UTILS_H
 
-#include <unistd.h>
-#include <string>
 #include <QString>
-#include <QStringList>
 #include <QListWidgetItem>
 
-bool systemHasNvidia();
+#include "programinfo.h"
 
-QString programName(QString path);
+QString pathToName(QString path);
 
-int itemVibrance(const QListWidgetItem *item, QString key);
-void setItemVibrance(QListWidgetItem *item, QString key, int val);
+programInfo* getItemInfo(QListWidgetItem *item);
 
-QMap<QString, int> itemMap(const QListWidgetItem *item);
-void setItemMap(QListWidgetItem *item, QMap<QString, int> map);
+QString getItemPath(QListWidgetItem *item);
 
-QString itemPath(const QListWidgetItem *item);
-/*
- *this also modifies the item's text. For example if the text is "ls" and the path is "/bin/ls"
- *and this function is called with the path value "/bin/mkdir" the items text will be changed to "mkdir"
-*/
-void setItemPath(QListWidgetItem *item, QString path);
+QString getItemName(QListWidgetItem *item);
 
-QString itemToJson(const QListWidgetItem *item);
+int* getItemDpyVibrance(QListWidgetItem *item, QString dpy);
 
-#endif // DEVICE_H
+QMap<QString, int>* getItemVibranceMap(QListWidgetItem *item);
+
+#endif // UTILS_H

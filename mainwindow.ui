@@ -66,20 +66,21 @@
      <x>0</x>
      <y>0</y>
      <width>425</width>
-     <height>20</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
      <string>Options</string>
     </property>
-    <addaction name="actionSend_to_tray"/>
+    <addaction name="actionShowHideWindow"/>
+    <addaction name="actionExit"/>
    </widget>
    <addaction name="menuOptions"/>
   </widget>
-  <action name="actionSend_to_tray">
+  <action name="actionShowHideWindow">
    <property name="text">
-    <string>Send to tray</string>
+    <string>Show/hide window</string>
    </property>
   </action>
   <action name="actionExit">

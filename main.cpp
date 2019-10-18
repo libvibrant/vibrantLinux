@@ -6,7 +6,6 @@ int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
 	QCommandLineParser parser;
 	parser.addOption(QCommandLineOption("hidden"));
-	parser.addPositionalArgument("hidden", "Automatically minimizes the window to systray on startup");
 	parser.parse(QCoreApplication::arguments());
 
 	mainWindow w;

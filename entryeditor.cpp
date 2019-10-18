@@ -1,17 +1,20 @@
 #include "entryeditor.h"
 #include "ui_entryeditor.h"
 
-entryEditor::entryEditor(QListWidgetItem *entry, QWidget *parent) : QDialog(parent), ui(new Ui::entryEditor), entry(entry){
-	if(entry == nullptr){
-		throw std::runtime_error("entryEditor was given a nullptr in constructor");
-	}
+entryEditor::entryEditor(QListWidgetItem *entry, QWidget *parent) : QDialog(parent),
+ui(new Ui::entryEditor), entry(entry){
 	ui->setupUi(this);
 
-	ui->path->setText(itemPath(entry));
-	displays = displayTab::getDisplays();
-	for(auto &dpy: displays){
-		dpy.setVibrance(itemVibrance(entry, dpy.getName()));
-		ui->displays->addTab((QWidget*)dpy, dpy.getName());
+	entryInfo = getItemInfo(entry);
+
+	ui->path->setText(entryInfo->path);
+
+	QStringList displayNames = displayTab::getDisplayNames();
+
+	for(auto &dpy: displayNames){
+		displayTab *dpyTab = new (std::nothrow) displayTab(dpy, ui->displays, false);
+		dpyTab->setDefaultVibrance((entryInfo->vibranceVals[dpy]));
+		ui->displays->addTab(dpyTab, dpy);
 	}
 }
 
@@ -29,10 +32,14 @@ void entryEditor::on_pathSelect_clicked(){
 }
 
 void entryEditor::on_buttonBox_accepted(){
-	setItemPath(entry, ui->path->text());
-	QMap<QString, int> map;
-	for(auto &dpy: displays){
-		map.insert(dpy.getName(), dpy.getVibrance());
+	entryInfo->path = ui->path->text();
+	entry->setText(pathToName(ui->path->text()));
+
+	QMap<QString, int> vibranceVals;
+	for(int i = 0; i < ui->displays->count(); i++){
+		displayTab *dpyTab = dynamic_cast<displayTab*>(ui->displays->widget(i));
+		vibranceVals.insert(dpyTab->getName(), dpyTab->getDefaultVibrance());
 	}
-	setItemMap(entry, map);
+
+	entryInfo->vibranceVals = vibranceVals;
 }

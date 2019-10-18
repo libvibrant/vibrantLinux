@@ -36,7 +36,7 @@ QListWidgetItem *procMonitor::getVibrance(QListWidget *&watchList){
 	QListWidgetItem *res = nullptr;
 	for(int i = 0; i < watchList->count(); i++){
 		for(auto &process: processes){
-			if(process == itemPath(watchList->item(i))){
+			if(process == getItemPath(watchList->item(i))){
 				res = watchList->item(i);
 			}
 		}

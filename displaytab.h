@@ -19,25 +19,20 @@
 class displayTab : public QWidget{
 	Q_OBJECT
 public:
-	explicit displayTab(QWidget *parent = nullptr);
-	explicit displayTab(const displayTab &other);
-	explicit displayTab(displayTab &&other) noexcept;
+	displayTab(QString name, QWidget *parent = nullptr, bool getVibrance = true);
+	displayTab(const displayTab &other);
+	displayTab(displayTab &&other) noexcept;
 	~displayTab();
-
-	operator QWidget*(){
-		return tab;
-	}
 
 	displayTab& operator=(const displayTab &other){
 		if(this == &other){
 			return *this;
 		}
 
-		makeTab(other.parentWidget());
 		slider->setValue(other.slider->value());
 		spinBox->setValue(other.spinBox->value());
 		name = other.name;
-		lastVibrance = other.lastVibrance;
+		currentVibrance = other.currentVibrance;
 
 		return *this;
 	}
@@ -47,15 +42,18 @@ public:
 			return *this;
 		}
 
-		tab = other.tab;
+		delete label;
+		delete slider;
+		delete spinBox;
+		delete layout;
+
 		label = other.label;
 		slider = other.slider;
 		spinBox = other.spinBox;
 		layout = other.layout;
 		name = std::move(other.name);
-		lastVibrance = other.lastVibrance;
+		currentVibrance = other.currentVibrance;
 
-		other.tab = nullptr;
 		other.label = nullptr;
 		other.slider = nullptr;
 		other.spinBox = nullptr;
@@ -70,30 +68,27 @@ public:
 
 	void applyVibrance(int vibrance);
 
-	static std::vector<displayTab> getDisplays(QWidget *parent = nullptr);
-	static std::vector<QString> getDisplayNames();
+	static QStringList getDisplayNames();
 
-	QString toJson();
+	int getDefaultVibrance();
+	void setDefaultVibrance(int value);
 
-	int getVibrance();
-	void setVibrance(int value);
+	int getCurrentVibrance();
 
-	QString getName();
+	const QString& getName();
 	void setName(QString name);
 
 private:
-	void makeTab(QWidget *parent = nullptr);
+	void makeTab();
 
-public:
-	static const int defaultVibrance = 1024;
-private:
-	QWidget *tab = nullptr;
 	QGridLayout *layout = nullptr;
 	QLabel *label = nullptr;
 	QSlider *slider = nullptr;
 	QSpinBox *spinBox = nullptr;
 	QString name;
-	int lastVibrance = defaultVibrance;
+	//set it outside of range so the first call to applyVibrance always works
+	//this is the currently applied vibrance
+	int currentVibrance;
 };
 
 #endif // DISPLAYTAB_H

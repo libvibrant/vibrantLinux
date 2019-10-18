@@ -13,11 +13,14 @@
 #include <QTimer>
 #include <QSystemTrayIcon>
 #include <QMap>
+#include <QMessageBox>
+#include <QMenu>
 
-#include "utils.h"
 #include "entryeditor.h"
 #include "procmonitor.h"
 #include "displaytab.h"
+#include "programinfo.h"
+#include "utils.h"
 
 namespace Ui {
 class mainWindow;
@@ -33,9 +36,15 @@ public:
 	QSystemTrayIcon systray;
 
 private:
-	void addEntry(QString path);
-	void addEntry(QString path, QMap<QString, int> vibrance);
+	void addEntry(const QString &path);
+	void addEntry(const QString &path, const QMap<QString, int> &vibrance);
 	void removeEntry(QListWidgetItem *item);
+
+	Ui::mainWindow *ui;
+	procMonitor monitor;
+	QTimer *timer = nullptr;
+
+	QMenu *systrayMenu;
 
 private slots:
 	void updateVibrance();
@@ -43,18 +52,13 @@ private slots:
 	void on_addProgram_clicked();
 	void on_delProgram_clicked();
 	void on_programs_doubleClicked(const QModelIndex &index);
-	void on_actionSend_to_tray_triggered();
+
+	void on_actionShowHideWindowtriggered();
+	void on_actionExit_triggered();
+
 	void on_donate_clicked();
 
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
-
-private:
-	Ui::mainWindow *ui;
-	QJsonObject settings;
-	procMonitor monitor;
-	QTimer *timer = nullptr;
-
-	std::vector<displayTab> displays;
 };
 
 #endif // MAINWINDOW_H

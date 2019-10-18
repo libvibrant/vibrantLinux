@@ -30,14 +30,15 @@ SOURCES += \
 	entryeditor.cpp \
 	procmonitor.cpp \
     displaytab.cpp \
-    utils.cpp
+	utils.cpp
 
 HEADERS += \
 	mainwindow.h \
 	entryeditor.h \
 	procmonitor.h \
     displaytab.h \
-    utils.h
+	programinfo.h \
+	utils.h
 
 FORMS += \
 	mainwindow.ui \
