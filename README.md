@@ -27,6 +27,12 @@ qt
 # Installation
 
 ```
+****Install Qt****
+
+sudo apt-get install build-essential
+sudo apt-get install qtcreator
+sudo apt-get install qt5-default
+
 git clone https://gitlab.com/zee220/vibrantlinux
 cd vibrantlinux
 ./update.sh
