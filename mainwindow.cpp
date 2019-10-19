@@ -286,6 +286,13 @@ void mainWindow::on_actionExit_triggered(){
 	close();
 }
 
+void mainWindow::on_actionAbout_triggered(){
+	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
+									  "the color saturation of specific monitors depending "
+									  "on what program is current running.\n\nThis program currently"
+									  "only works for NVIDIA systems.\n\nVersion: 1.0");
+}
+
 void mainWindow::on_donate_clicked(){
 	QDesktopServices::openUrl(QUrl("https://paypal.me/vibrantlinux"));
 }

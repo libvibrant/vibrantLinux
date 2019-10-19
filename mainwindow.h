@@ -55,6 +55,7 @@ private slots:
 
 	void on_actionShowHideWindow_triggered();
 	void on_actionExit_triggered();
+	void on_actionAbout_triggered();
 
 	void on_donate_clicked();
 
