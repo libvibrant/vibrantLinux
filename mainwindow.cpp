@@ -12,6 +12,10 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
 
 	systrayMenu = new (std::nothrow) QMenu();
+	systrayMenu->addAction(ui->actionShowHideWindow);
+	systrayMenu->addAction(ui->actionExit);
+
+	systray.setContextMenu(systrayMenu);
 
 	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
 	//if the file doesn't exist create an empty default one
@@ -273,13 +277,8 @@ void mainWindow::on_programs_doubleClicked(const QModelIndex &index){
 	editor.exec();
 }
 
-void mainWindow::on_actionShowHideWindowtriggered(){
-	if(isVisible()){
-		hide();
-	}
-	else{
-		show();
-	}
+void mainWindow::on_actionShowHideWindow_triggered(){
+	setVisible(!isVisible());
 }
 
 void mainWindow::on_actionExit_triggered(){

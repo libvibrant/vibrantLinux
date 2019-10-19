@@ -53,7 +53,7 @@ private slots:
 	void on_delProgram_clicked();
 	void on_programs_doubleClicked(const QModelIndex &index);
 
-	void on_actionShowHideWindowtriggered();
+	void on_actionShowHideWindow_triggered();
 	void on_actionExit_triggered();
 
 	void on_donate_clicked();
