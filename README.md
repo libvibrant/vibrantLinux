@@ -26,15 +26,23 @@ qt
 
 # Installation
 
-```
-****Install Qt****
+## Ubuntu
 
-sudo apt-get install build-essential
-sudo apt-get install qtcreator
-sudo apt-get install qt5-default
+```
+sudo apt-get install build-essential qtcreator qt5-default git
 
 git clone https://gitlab.com/zee220/vibrantlinux
 cd vibrantlinux
+./update.sh
+```
+
+## Arch Linux
+
+```
+sudo pacman -S nvidia-settings qt5-base git
+
+git clone https://gitlab.com/zee220/vibrantlinux
+cd vibrantliunx
 ./update.sh
 ```
 
