@@ -25,24 +25,24 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++14
 
 SOURCES += \
-	main.cpp \
-	mainwindow.cpp \
-	entryeditor.cpp \
-	procmonitor.cpp \
-    displaytab.cpp \
-	utils.cpp
+	src/displaytab.cpp \
+	src/entryeditor.cpp \
+	src/main.cpp \
+	src/mainwindow.cpp \
+	src/procmonitor.cpp \
+	src/utils.cpp
 
 HEADERS += \
-	mainwindow.h \
-	entryeditor.h \
-	procmonitor.h \
-    displaytab.h \
-	programinfo.h \
-	utils.h
+	include/displaytab.h \
+	include/entryeditor.h \
+	include/mainwindow.h \
+	include/procmonitor.h \
+	include/programinfo.h \
+	include/utils.h
 
 FORMS += \
-	mainwindow.ui \
-	entryeditor.ui
+	forms/entryeditor.ui \
+	forms/mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
