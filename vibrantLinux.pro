@@ -24,6 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 CONFIG += c++14
 
+INCLUDEPATH += "include/"
+
 SOURCES += \
 	src/displaytab.cpp \
 	src/entryeditor.cpp \
