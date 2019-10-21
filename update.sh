@@ -3,4 +3,5 @@ git reset --hard
 git pull
 qmake
 make
-rm -r *.o *.h *.cpp *.ui *.pro* Makefile LICENSE README.md assets/ resources.qrc
+rm -r include forms src *.o *.h *.cpp *.pro* Makefile LICENSE README.md \
+assets/ resources.qrc
