@@ -5,8 +5,6 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	ui->setupUi(this);
 
 	setWindowIcon(QIcon(":/assets/icon.png"));
-	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(updateVibrance()));
 
 	systray.setIcon(QIcon(":/assets/icon.png"));
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
@@ -107,8 +105,17 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 		}
 	}
 
-
 	systray.show();
+
+	//try to establish an X connection, if we can't then scan the /proc/ folder every second
+	if(!establishXConnection()){
+		connectedToX = false;
+		ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+		ui->vibranceFocusToggle->setEnabled(false);
+	}
+
+	timer = new QTimer(this);
+	connect(timer, SIGNAL(timeout()), this, SLOT(updateVibrance()));
 	timer->start(1000);
 }
 
@@ -162,6 +169,10 @@ mainWindow::~mainWindow(){
 		removeEntry(item);
 	}
 
+	if(connectedToX){
+		xcb_disconnect(xcon.connection);
+	}
+
 	//destruct vector before displays
 	displayTab *dpy;
 	while((dpy = dynamic_cast<displayTab*>(ui->displays->widget(0))) != nullptr){
@@ -175,12 +186,11 @@ mainWindow::~mainWindow(){
 }
 
 void mainWindow::addEntry(const QString &path){
-	QMessageBox errorBox;
 
 	//create a new item
 	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
 	if(item == nullptr){
-		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
 		return;
 	}
 
@@ -188,7 +198,7 @@ void mainWindow::addEntry(const QString &path){
 	programInfo *info = new (std::nothrow) programInfo(path);
 	if(info == nullptr){
 		delete item;
-		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
 		return;
 	}
 
@@ -203,19 +213,37 @@ void mainWindow::addEntry(const QString &path){
 	ui->programs->addItem(item);
 }
 
-void mainWindow::addEntry(const QString &path, const QMap<QString, int> &vibrance){
-	QMessageBox errorBox;
+bool mainWindow::establishXConnection(){
+	xcon.connection = xcb_connect(nullptr, nullptr);
+	if(xcb_connection_has_error(xcon.connection)){
+		xcb_disconnect(xcon.connection);
+		return false;
+	}
 
+	//we'll be doing something with this later, but that'll come with a future version
+	xcb_generic_error_t *e = nullptr;
+
+	xcb_intern_atom_cookie_t *cookies;
+	cookies = xcb_ewmh_init_atoms(xcon.connection, &xcon);
+	if(!xcb_ewmh_init_atoms_replies(&xcon, cookies, &e)){
+		xcb_disconnect(xcon.connection);
+		return false;
+	}
+
+	return true;
+}
+
+void mainWindow::addEntry(const QString &path, const QMap<QString, int> &vibrance){
 	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
 	if(item == nullptr){
-		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
 		return;
 	}
 
 	programInfo *info = new (std::nothrow) programInfo(path, vibrance);
 	if(info == nullptr){
 		delete item;
-		errorBox.warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
+		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
 		return;
 	}
 
@@ -232,10 +260,56 @@ void mainWindow::removeEntry(QListWidgetItem *item){
 }
 
 void mainWindow::updateVibrance(){
-	monitor.update();
-	QListWidgetItem *program = monitor.getVibrance(ui->programs);
+	if(ui->vibranceFocusToggle->isChecked()){
+		//get the current active window
+		xcb_get_property_cookie_t cookie;
+		xcb_window_t activeWindow;
+		xcb_generic_error_t *e = nullptr;
 
-	if(program == nullptr){
+		cookie = xcb_ewmh_get_active_window(&xcon, 0);
+		if(!xcb_ewmh_get_active_window_reply(&xcon, cookie, &activeWindow, &e)){
+			QMessageBox::warning(this, "ewmh error", "Failed to get the currently "
+								"active window. Disabling ewmh active window detection.");
+			ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+			xcb_disconnect(xcon.connection);
+			connectedToX = false;
+
+			return;
+		}
+
+		uint32_t pid;
+		cookie = xcb_ewmh_get_wm_pid(&xcon, activeWindow);
+		if(!xcb_ewmh_get_wm_pid_reply(&xcon, cookie, &pid, &e)){
+			QMessageBox::warning(this, "ewmh error", "Failed to get the currently "
+								"active window. Disabling ewmh active window detection.");
+			ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+			xcb_disconnect(xcon.connection);
+			connectedToX = false;
+
+			return;
+		}
+
+		QFileInfo procInfo("/proc/"+QString::number(pid)+"/exe");
+		QString procPath = procInfo.canonicalFilePath();
+
+		//check if the active window program is in our list
+		for(int i = 0; i < ui->programs->count(); i++){
+			QListWidgetItem *program = ui->programs->item(i);
+			//if it is in our list then loop through the displays and apply the appropriate vibrance
+			if(procPath == getItemPath(program)){
+				for(int j = 0; j < ui->displays->count(); j++){
+					displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(j));
+
+					int vibrance = *getItemDpyVibrance(program, dpy->getName());
+					if(dpy->getCurrentVibrance() != vibrance){
+						dpy->applyVibrance(vibrance);
+					}
+				}
+				return;
+			}
+		}
+
+		//the active window is not in our watchlist so apply the default vibrance
 		for(int i = 0; i < ui->displays->count(); i++){
 			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
 
@@ -246,13 +320,46 @@ void mainWindow::updateVibrance(){
 		}
 	}
 	else{
-		for(int i = 0; i < ui->displays->count(); i++){
-			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+		QListWidgetItem *program = monitor.getVibrance(ui->programs);
 
-			int vibrance = *getItemDpyVibrance(program, dpy->getName());
-			if(dpy->getCurrentVibrance() != vibrance){
-				dpy->applyVibrance(vibrance);
+		if(program == nullptr){
+			for(int i = 0; i < ui->displays->count(); i++){
+				displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+
+				int vibrance = dpy->getDefaultVibrance();
+				if(dpy->getCurrentVibrance() != vibrance){
+					dpy->applyVibrance(vibrance);
+				}
 			}
+		}
+		else{
+			for(int i = 0; i < ui->displays->count(); i++){
+				displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+
+				int vibrance = *getItemDpyVibrance(program, dpy->getName());
+				if(dpy->getCurrentVibrance() != vibrance){
+					dpy->applyVibrance(vibrance);
+				}
+			}
+		}
+	}
+}
+
+void mainWindow::on_vibranceFocusToggle_clicked(bool checked){
+	if(checked){
+		if(!connectedToX){
+			if(!establishXConnection()){
+				QMessageBox::warning(this, "ewmh error", "failed to establish connection "
+									"to X server");
+				ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+			}
+			connectedToX = true;
+		}
+	}
+	else{
+		if(connectedToX){
+			xcb_disconnect(xcon.connection);
+			connectedToX = false;
 		}
 	}
 }
@@ -290,7 +397,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently"
-									  "only works for NVIDIA systems.\n\nVersion: 1.0.0");
+									  "only works for NVIDIA systems.\n\nVersion: 1.1.0");
 }
 
 void mainWindow::on_donate_clicked(){

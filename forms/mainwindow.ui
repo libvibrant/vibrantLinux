@@ -58,6 +58,16 @@
       </property>
      </widget>
     </item>
+    <item row="3" column="0">
+     <widget class="QCheckBox" name="vibranceFocusToggle">
+      <property name="text">
+       <string>Set vibrance only when program is in focus</string>
+      </property>
+      <property name="checked">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">

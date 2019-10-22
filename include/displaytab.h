@@ -70,9 +70,11 @@ public:
 
 	static QStringList getDisplayNames();
 
+	//get the default vibrance level to apply when no program in our watchlist is running
 	int getDefaultVibrance();
 	void setDefaultVibrance(int value);
 
+	//get the currently applied vibrance level for this display
 	int getCurrentVibrance();
 
 	const QString& getName();

@@ -22,6 +22,8 @@ The only things needed to run this program is:
 git
 nvidia-settings
 qt
+libxcb-dev
+libxcb-ewmh-dev
 ```
 
 # Installation
@@ -39,7 +41,7 @@ cd vibrantlinux
 ## Arch Linux
 
 ```
-sudo pacman -S nvidia-settings qt5-base git
+sudo pacman -S nvidia-settings qt5-base git libxcb 
 
 git clone https://gitlab.com/zee220/vibrantlinux
 cd vibrantliunx

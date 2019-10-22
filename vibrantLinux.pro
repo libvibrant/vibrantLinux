@@ -26,6 +26,10 @@ CONFIG += c++14
 
 INCLUDEPATH += "include/"
 
+LIBS += \
+	-lxcb \
+	-lxcb-ewmh
+
 SOURCES += \
 	src/displaytab.cpp \
 	src/entryeditor.cpp \

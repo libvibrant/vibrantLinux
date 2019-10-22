@@ -16,6 +16,8 @@
 #include <QMessageBox>
 #include <QMenu>
 
+#include <xcb/xcb_ewmh.h>
+
 #include "entryeditor.h"
 #include "procmonitor.h"
 #include "displaytab.h"
@@ -36,6 +38,8 @@ public:
 	QSystemTrayIcon systray;
 
 private:
+	bool establishXConnection();
+
 	void addEntry(const QString &path);
 	void addEntry(const QString &path, const QMap<QString, int> &vibrance);
 	void removeEntry(QListWidgetItem *item);
@@ -44,11 +48,15 @@ private:
 	procMonitor monitor;
 	QTimer *timer = nullptr;
 
+	bool connectedToX = false;
+	xcb_ewmh_connection_t xcon;
+
 	QMenu *systrayMenu;
 
 private slots:
 	void updateVibrance();
 
+	void on_vibranceFocusToggle_clicked(bool checked);
 	void on_addProgram_clicked();
 	void on_delProgram_clicked();
 	void on_programs_doubleClicked(const QModelIndex &index);
