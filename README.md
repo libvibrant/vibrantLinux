@@ -41,7 +41,7 @@ cd vibrantlinux
 ## Arch Linux
 
 ```
-sudo pacman -S nvidia-settings qt5-base git libxcb xcb-utils-wm
+sudo pacman -S nvidia-settings qt5-base git libxcb xcb-util-wm
 
 git clone https://gitlab.com/zee220/vibrantlinux
 cd vibrantliunx
