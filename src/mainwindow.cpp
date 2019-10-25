@@ -268,12 +268,6 @@ void mainWindow::updateVibrance(){
 
 		cookie = xcb_ewmh_get_active_window(&xcon, 0);
 		if(!xcb_ewmh_get_active_window_reply(&xcon, cookie, &activeWindow, &e)){
-			QMessageBox::warning(this, "ewmh error", "Failed to get the currently "
-								"active window. Disabling ewmh active window detection.");
-			ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-			xcb_disconnect(xcon.connection);
-			connectedToX = false;
-
 			return;
 		}
 
@@ -391,7 +385,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently"
-									  "only works for NVIDIA systems.\n\nVersion: 1.1.1");
+									  "only works for NVIDIA systems.\n\nVersion: 1.1.2");
 }
 
 void mainWindow::on_donate_clicked(){
