@@ -22,30 +22,34 @@ The only things needed to run this program is:
 git
 nvidia-settings
 qt
-libxcb
-libxcb-ewmh
+libxcb (optional)
+libxcb-ewmh (optional)
 ```
-
-# Installation
 
 ## Ubuntu
 
 ```
-sudo apt-get install build-essential qtcreator qt5-default git libxcb-dev libxcb-ewmh-dev
-
-git clone https://gitlab.com/zee220/vibrantlinux
-cd vibrantlinux
-./update.sh
+sudo apt-get install build-essential qtcreator qt5-default git
+#xcb is optional
+sudo apt-get install libxcb-dev libxcb-ewmh-dev
 ```
 
 ## Arch Linux
 
 ```
-sudo pacman -S nvidia-settings qt5-base git libxcb xcb-util-wm
+sudo pacman -S nvidia-settings qt5-base git
+#xcb is optional
+sudo pacman -S libxcb xcb-util-wm
+```
 
+# Installation
+
+```
 git clone https://gitlab.com/zee220/vibrantlinux
-cd vibrantliunx
+cd vibrantlinux
 ./update.sh
+#or alternatively if you know you don't want to use ewmh to get the active window
+./update.sh --noxcb
 ```
 
 # Updates
@@ -53,5 +57,7 @@ cd vibrantliunx
 Head to your installation folder and run
 ```
 ./update.sh
+#or for no xcb
+./update.sh --noxcb
 ```
 

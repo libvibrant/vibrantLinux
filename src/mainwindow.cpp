@@ -107,12 +107,17 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 
 	systray.show();
 
+	#ifndef VIBRANT_LINUX_NO_XCB
 	//try to establish an X connection, if we can't then scan the /proc/ folder every second
 	if(!establishXConnection()){
 		connectedToX = false;
 		ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
 		ui->vibranceFocusToggle->setEnabled(false);
 	}
+	#else
+	ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+	ui->vibranceFocusToggle->setEnabled(false);
+	#endif
 
 	timer = new QTimer(this);
 	connect(timer, SIGNAL(timeout()), this, SLOT(updateVibrance()));
@@ -169,9 +174,11 @@ mainWindow::~mainWindow(){
 		removeEntry(item);
 	}
 
+	#ifndef VIBRANT_LINUX_NO_XCB
 	if(connectedToX){
 		xcb_disconnect(xcon.connection);
 	}
+	#endif
 
 	//destruct vector before displays
 	displayTab *dpy;
@@ -213,6 +220,7 @@ void mainWindow::addEntry(const QString &path){
 	ui->programs->addItem(item);
 }
 
+#ifndef VIBRANT_LINUX_NO_XCB
 bool mainWindow::establishXConnection(){
 	xcon.connection = xcb_connect(nullptr, nullptr);
 	if(xcb_connection_has_error(xcon.connection)){
@@ -232,6 +240,7 @@ bool mainWindow::establishXConnection(){
 
 	return true;
 }
+#endif
 
 void mainWindow::addEntry(const QString &path, const QMap<QString, int> &vibrance){
 	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
@@ -260,6 +269,7 @@ void mainWindow::removeEntry(QListWidgetItem *item){
 }
 
 void mainWindow::updateVibrance(){
+	#ifndef VIBRANT_LINUX_NO_XCB
 	if(ui->vibranceFocusToggle->isChecked()){
 		//get the current active window
 		xcb_get_property_cookie_t cookie;
@@ -308,6 +318,7 @@ void mainWindow::updateVibrance(){
 		}
 	}
 	else{
+	#endif
 		QListWidgetItem *program = monitor.getVibrance(ui->programs);
 
 		if(program == nullptr){
@@ -330,10 +341,14 @@ void mainWindow::updateVibrance(){
 				}
 			}
 		}
+	#ifndef VIBRANT_LINUX_NO_XCB
 	}
+	#endif
 }
 
 void mainWindow::on_vibranceFocusToggle_clicked(bool checked){
+	Q_UNUSED(checked)
+#ifndef VIBRANT_LINUX_NO_XCB
 	if(checked){
 		if(!connectedToX){
 			if(!establishXConnection()){
@@ -350,6 +365,7 @@ void mainWindow::on_vibranceFocusToggle_clicked(bool checked){
 			connectedToX = false;
 		}
 	}
+#endif
 }
 
 void mainWindow::on_addProgram_clicked(){

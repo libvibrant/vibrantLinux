@@ -2,9 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QIntValidator>
 #include <QFileDialog>
-#include <QStandardPaths>
+#include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -12,7 +11,6 @@
 #include <QDesktopServices>
 #include <QTimer>
 #include <QSystemTrayIcon>
-#include <QMap>
 #include <QMessageBox>
 #include <QMenu>
 
@@ -38,7 +36,9 @@ public:
 	QSystemTrayIcon systray;
 
 private:
+	#ifndef VIBRANT_LINUX_NO_XCB
 	bool establishXConnection();
+	#endif
 
 	void addEntry(const QString &path);
 	void addEntry(const QString &path, const QMap<QString, int> &vibrance);
@@ -48,14 +48,18 @@ private:
 	procMonitor monitor;
 	QTimer *timer = nullptr;
 
+	#ifndef VIBRANT_LINUX_NO_XCB
 	bool connectedToX = false;
 	xcb_ewmh_connection_t xcon;
+	#endif
 
 	QMenu *systrayMenu;
 
 private slots:
 	void updateVibrance();
 
+	/*we have to keep the function in case VIBRANT_LINUX_NO_XCB is defined
+	otherwise moc_mainwindow will contain an undefined refernece to it*/
 	void on_vibranceFocusToggle_clicked(bool checked);
 	void on_addProgram_clicked();
 	void on_delProgram_clicked();

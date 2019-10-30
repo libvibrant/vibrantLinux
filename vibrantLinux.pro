@@ -26,9 +26,11 @@ CONFIG += c++14
 
 INCLUDEPATH += "include/"
 
+!contains(DEFINES, VIBRANT_LINUX_NO_XCB){
 LIBS += \
 	-lxcb \
 	-lxcb-ewmh
+}
 
 SOURCES += \
 	src/displaytab.cpp \
