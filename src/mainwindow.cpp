@@ -400,7 +400,7 @@ void mainWindow::on_actionExit_triggered(){
 void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
-									  "on what program is current running.\n\nThis program currently"
+									  "on what program is current running.\n\nThis program currently "
 									  "only works for NVIDIA systems.\n\nVersion: 1.1.2");
 }
 
