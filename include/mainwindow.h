@@ -14,7 +14,9 @@
 #include <QMessageBox>
 #include <QMenu>
 
+#ifndef VIBRANT_LINUX_NO_XCB
 #include <xcb/xcb_ewmh.h>
+#endif
 
 #include "entryeditor.h"
 #include "procmonitor.h"
