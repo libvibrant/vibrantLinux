@@ -4,23 +4,7 @@ displayTab::displayTab(QString name, QWidget *parent, bool getVibrance) : QWidge
 	makeTab();
 
 	if(getVibrance){
-		QProcess nvidia;
-		QProcess grep;
-		nvidia.setStandardOutputProcess(&grep);
-		nvidia.start("nvidia-settings -q [" + name + "]/DigitalVibrance");
-		nvidia.waitForFinished();
-		grep.start("grep dpy");
-		grep.waitForFinished();
-
-		/*
-		* The output should be in this format
-		* Attribute 'DigitalVibrance' (HOSTNAME:0[dpy:NUMBER]): 0.
-		*/
-
-		QString res = grep.readAllStandardOutput().split(' ').last();
-		//remove the period at the end
-		res.resize(res.size()-1);
-		currentVibrance = res.toInt();
+		currentVibrance = getNvidiaSettingsVibrance(name);
 	}
 }
 
@@ -124,6 +108,26 @@ QStringList displayTab::getDisplayNames(){
 	}
 
 	return names;
+}
+
+int displayTab::getNvidiaSettingsVibrance(const QString &name){
+	QProcess nvidia;
+	QProcess grep;
+	nvidia.setStandardOutputProcess(&grep);
+	nvidia.start("nvidia-settings -q [" + name + "]/DigitalVibrance");
+	nvidia.waitForFinished();
+	grep.start("grep dpy");
+	grep.waitForFinished();
+
+	/*
+	* The output should be in this format
+	* Attribute 'DigitalVibrance' (HOSTNAME:0[dpy:NUMBER]): 0.
+	*/
+
+	QString res = grep.readAllStandardOutput().split(' ').last();
+	//remove the period at the end
+	res.resize(res.size()-1);
+	return res.toInt();
 }
 
 int displayTab::getDefaultVibrance(){

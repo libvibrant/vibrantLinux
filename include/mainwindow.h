@@ -38,13 +38,20 @@ public:
 	QSystemTrayIcon systray;
 
 private:
-	#ifndef VIBRANT_LINUX_NO_XCB
-	bool establishXConnection();
-	#endif
+	void parseConfig();
+	//helper functions for generateFromConfig
+	bool hasMonitorSetupChanged(const QJsonArray &configDisplays, const QStringList &currentDisplays);
+	QJsonObject generateConfig(const QStringList &displayNames);
+	void generateTabs(const QStringList &displayNames);
+	void freeAllocatedTabs();
 
 	void addEntry(const QString &path);
 	void addEntry(const QString &path, const QMap<QString, int> &vibrance);
 	void removeEntry(QListWidgetItem *item);
+
+	#ifndef VIBRANT_LINUX_NO_XCB
+	bool establishXConnection();
+	#endif
 
 	Ui::mainWindow *ui;
 	procMonitor monitor;

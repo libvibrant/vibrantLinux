@@ -10,100 +10,15 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
 
 	systrayMenu = new (std::nothrow) QMenu();
+	if(systrayMenu == nullptr){
+		throw std::runtime_error("failed to allocate memory for systray menu");
+	}
+
 	systrayMenu->addAction(ui->actionShowHideWindow);
 	systrayMenu->addAction(ui->actionExit);
-
 	systray.setContextMenu(systrayMenu);
 
-	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
-	//if the file doesn't exist create an empty default one
-	if(!QFile::exists(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal")){
-		QDir dir = QDir::homePath();
-		dir.mkpath(".config/vibrantLinux/");
-		settingsFile.open(QFile::WriteOnly);
-		settingsFile.close();
-		return;
-	}
-	settingsFile.open(QFile::ReadOnly);
-
-	QJsonObject settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
-	settingsFile.close();
-
-	bool sameSetup = true;
-	QJsonArray displayArr = settings["displays"].toArray();
-	QStringList displayNames = displayTab::getDisplayNames();
-
-	if(displayArr.size() == displayNames.size()){
-		for(auto dpyRef: displayArr){
-			if(!displayNames.contains(dpyRef.toObject()["name"].toString())){
-				sameSetup = false;
-				break;
-			}
-		}
-	}
-	else{
-		sameSetup = false;
-	}
-
-	//if the monitor setup is the same then copy old settings, else reset everything
-	if(sameSetup){
-		for(auto dpyRef: displayArr){
-			QJsonObject dpy = dpyRef.toObject();
-
-			displayTab *dpyTab = new (std::nothrow) displayTab(dpy["name"].toString(), ui->displays);
-			if(!dpyTab){
-				displayTab *tmp;
-				while((tmp = dynamic_cast<displayTab*>(ui->displays->widget(0))) != nullptr){
-					ui->displays->removeTab(0);
-					delete tmp;
-				}
-
-				throw std::runtime_error("Failed to allocate memory for display tabs");
-			}
-
-			int vibrance = dpy["vibrance"].toInt();
-			dpyTab->setDefaultVibrance(vibrance);
-			dpyTab->applyVibrance(vibrance);
-			ui->displays->addTab(dpyTab, dpyTab->getName());
-		}
-
-		for(auto programRef: settings["programs"].toArray()){
-			QJsonObject program = programRef.toObject();
-
-			QMap<QString, int> vibranceVals;
-			for(auto dpyVibranceRef: program["vibrance"].toArray()){
-				QJsonObject dpyVibrance = dpyVibranceRef.toObject();
-				vibranceVals.insert(dpyVibrance["name"].toString(), dpyVibrance["vibrance"].toInt());
-			}
-
-			addEntry(program["path"].toString(), vibranceVals);
-		}
-	}
-	else{
-		for(auto name: displayNames){
-			displayTab *dpyTab = new (std::nothrow) displayTab(name, ui->displays);
-			if(!dpyTab){
-				displayTab *tmp;
-				while((tmp = dynamic_cast<displayTab*>(ui->displays->widget(0))) != nullptr){
-					ui->displays->removeTab(0);
-					delete tmp;
-				}
-
-				throw std::runtime_error("Failed to allocate memory for display tabs");
-			}
-
-			int vibrance = dpyTab->getCurrentVibrance();
-			dpyTab->setDefaultVibrance(vibrance);
-			dpyTab->applyVibrance(vibrance);
-			ui->displays->addTab(dpyTab, dpyTab->getName());
-		}
-
-		for(auto programRef: settings["programs"].toArray()){
-			QJsonObject program = programRef.toObject();
-
-			addEntry(program["path"].toString());
-		}
-	}
+	parseConfig();
 
 	systray.show();
 
@@ -120,7 +35,7 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	#endif
 
 	timer = new QTimer(this);
-	connect(timer, SIGNAL(timeout()), this, SLOT(updateVibrance()));
+	connect(timer, &QTimer::timeout, this, &mainWindow::updateVibrance);
 	timer->start(1000);
 }
 
@@ -192,6 +107,125 @@ mainWindow::~mainWindow(){
 	delete ui;
 }
 
+void mainWindow::parseConfig(){
+	QJsonObject settings;
+	QStringList displayNames = displayTab::getDisplayNames();
+
+	//check if config file exists, and if it does read it. Otherwise generate one
+	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
+	if(QFile::exists(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal")){
+		settingsFile.open(QFile::ReadOnly);
+		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
+		QJsonArray displaysArray = settings["displays"].toArray();
+
+		if(hasMonitorSetupChanged(displaysArray, displayNames)){
+			generateTabs(displayNames);
+
+			for(auto programRef: settings["programs"].toArray()){
+				QJsonObject program = programRef.toObject();
+				addEntry(program["path"].toString());
+			}
+		}
+		else{
+			for(auto dpyRef: displaysArray){
+				QJsonObject dpy = dpyRef.toObject();
+				displayTab *dpyTab = new (std::nothrow) displayTab(dpy["name"].toString());
+				if(dpyTab == nullptr){
+					freeAllocatedTabs();
+					throw std::runtime_error("failed to allocate memory for display tabs");
+				}
+
+				int vibrance = dpyTab->getCurrentVibrance();
+				dpyTab->setDefaultVibrance(vibrance);
+				ui->displays->addTab(dpyTab, dpyTab->getName());
+			}
+
+			for(auto programRef: settings["programs"].toArray()){
+				QJsonObject program = programRef.toObject();
+				QMap<QString, int> vibranceVals;
+
+				for(auto vibranceRef: program["vibrance"].toArray()){
+					QJsonObject vibrance = vibranceRef.toObject();
+					vibranceVals.insert(vibrance["name"].toString(), vibrance["vibrance"].toInt());
+				}
+
+				addEntry(program["path"].toString(), vibranceVals);
+			}
+		}
+	}
+	else{
+		QDir dir = QDir::homePath();
+		dir.mkpath(".config/vibrantLinux/");
+		settingsFile.open(QFile::WriteOnly);
+
+		settings = generateConfig(displayNames);
+		settingsFile.write(QJsonDocument(settings).toJson());
+		settingsFile.close();
+
+		//if this throws let it propagate to the ctor
+		generateTabs(displayNames);
+	}
+}
+
+bool mainWindow::hasMonitorSetupChanged(const QJsonArray &configDisplays, const QStringList &currentDisplays){
+	if(configDisplays.size() == currentDisplays.size()){
+		for(auto dpy: configDisplays){
+			if(!currentDisplays.contains(dpy.toObject()["name"].toString())){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	return true;
+}
+
+QJsonObject mainWindow::generateConfig(const QStringList &displayNames){
+	QJsonObject res;
+
+	//store the displays as an array
+	QJsonArray tmpArr;
+	for(auto &name: displayNames){
+		QJsonObject dpyObject;
+		dpyObject.insert("name", name);
+		dpyObject.insert("vibrance", displayTab::getNvidiaSettingsVibrance(name));
+
+		tmpArr.append(dpyObject);
+	}
+	res.insert("displays", tmpArr);
+
+	//clear the array
+	tmpArr = QJsonArray();
+
+	//create an empty programs array
+	res.insert("programs", tmpArr);
+
+	return res;
+}
+
+void mainWindow::generateTabs(const QStringList &displayNames){
+	for(auto &name: displayNames){
+		displayTab *dpyTab = new (std::nothrow) displayTab(name);
+		if(dpyTab == nullptr){
+			freeAllocatedTabs();
+			throw std::runtime_error("failed to allocate memory for display tabs");
+		}
+
+		int vibrance = dpyTab->getCurrentVibrance();
+		dpyTab->setDefaultVibrance(vibrance);
+		ui->displays->addTab(dpyTab, name);
+	}
+}
+
+void mainWindow::freeAllocatedTabs(){
+	displayTab *tmp;
+	while((tmp = dynamic_cast<displayTab*>(ui->displays->widget(0))) != nullptr){
+		ui->displays->removeTab(0);
+		delete tmp;
+	}
+}
+
 void mainWindow::addEntry(const QString &path){
 
 	//create a new item
@@ -220,28 +254,6 @@ void mainWindow::addEntry(const QString &path){
 	ui->programs->addItem(item);
 }
 
-#ifndef VIBRANT_LINUX_NO_XCB
-bool mainWindow::establishXConnection(){
-	xcon.connection = xcb_connect(nullptr, nullptr);
-	if(xcb_connection_has_error(xcon.connection)){
-		xcb_disconnect(xcon.connection);
-		return false;
-	}
-
-	//we'll be doing something with this later, but that'll come with a future version
-	xcb_generic_error_t *e = nullptr;
-
-	xcb_intern_atom_cookie_t *cookies;
-	cookies = xcb_ewmh_init_atoms(xcon.connection, &xcon);
-	if(!xcb_ewmh_init_atoms_replies(&xcon, cookies, &e)){
-		xcb_disconnect(xcon.connection);
-		return false;
-	}
-
-	return true;
-}
-#endif
-
 void mainWindow::addEntry(const QString &path, const QMap<QString, int> &vibrance){
 	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
 	if(item == nullptr){
@@ -267,6 +279,25 @@ void mainWindow::removeEntry(QListWidgetItem *item){
 	delete getItemInfo(item);
 	delete item;
 }
+
+#ifndef VIBRANT_LINUX_NO_XCB
+bool mainWindow::establishXConnection(){
+	xcon.connection = xcb_connect(nullptr, nullptr);
+	if(xcb_connection_has_error(xcon.connection)){
+		xcb_disconnect(xcon.connection);
+		return false;
+	}
+
+	xcb_intern_atom_cookie_t *cookies;
+	cookies = xcb_ewmh_init_atoms(xcon.connection, &xcon);
+	if(!xcb_ewmh_init_atoms_replies(&xcon, cookies, nullptr)){
+		xcb_disconnect(xcon.connection);
+		return false;
+	}
+
+	return true;
+}
+#endif
 
 void mainWindow::updateVibrance(){
 	#ifndef VIBRANT_LINUX_NO_XCB
@@ -401,7 +432,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
-									  "only works for NVIDIA systems.\n\nVersion: 1.1.2");
+									  "only works for NVIDIA systems.\n\nVersion: 1.1.3");
 }
 
 void mainWindow::on_donate_clicked(){

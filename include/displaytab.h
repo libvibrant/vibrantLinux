@@ -68,7 +68,10 @@ public:
 
 	void applyVibrance(int vibrance);
 
+	//gets a list of all of the display names from nvidia-settings
 	static QStringList getDisplayNames();
+	//gets the vibrance of the display @name from nvidia-settings
+	static int getNvidiaSettingsVibrance(const QString &name);
 
 	//get the default vibrance level to apply when no program in our watchlist is running
 	int getDefaultVibrance();
