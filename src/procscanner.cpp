@@ -1,12 +1,12 @@
-#include "procmonitor.h"
+#include "procscanner.h"
 
-procMonitor::procMonitor(){
+procScanner::procScanner(){
 }
 
-procMonitor::~procMonitor(){
+procScanner::~procScanner(){
 }
 
-QListWidgetItem* procMonitor::getVibrance(QListWidget *&watchList){
+QListWidgetItem* procScanner::getVibrance(QListWidget *&watchList){
 	QListWidgetItem *res = nullptr;
 	updateProcessesVector();
 
@@ -22,7 +22,7 @@ QListWidgetItem* procMonitor::getVibrance(QListWidget *&watchList){
 	return res;
 }
 
-void procMonitor::updateProcessesVector(){
+void procScanner::updateProcessesVector(){
 	processes.resize(0);
 
 	QDir procDir("/proc");

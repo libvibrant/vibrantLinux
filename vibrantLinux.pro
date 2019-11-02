@@ -37,14 +37,14 @@ SOURCES += \
 	src/entryeditor.cpp \
 	src/main.cpp \
 	src/mainwindow.cpp \
-	src/procmonitor.cpp \
+	src/procscanner.cpp \
 	src/utils.cpp
 
 HEADERS += \
 	include/displaytab.h \
 	include/entryeditor.h \
 	include/mainwindow.h \
-	include/procmonitor.h \
+	include/procscanner.h \
 	include/programinfo.h \
 	include/utils.h
 

@@ -2,18 +2,18 @@
 #define PROGRAMINFO_H
 
 #include <QString>
-#include <QMap>
+#include <QHash>
 #include <QMetaType>
 
 struct programInfo{
 	programInfo(const QString &path):
 		path(path){}
 
-	programInfo(const QString &path, const QMap<QString, int> &vibranceVals):
+	programInfo(const QString &path, const QHash<QString, int> &vibranceVals):
 		path(path), vibranceVals(vibranceVals){}
 
 	QString path;
-	QMap<QString, int> vibranceVals;
+	QHash<QString, int> vibranceVals;
 };
 
 Q_DECLARE_METATYPE(programInfo*)

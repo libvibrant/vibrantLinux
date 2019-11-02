@@ -35,7 +35,7 @@ void entryEditor::on_buttonBox_accepted(){
 	entryInfo->path = ui->path->text();
 	entry->setText(pathToName(ui->path->text()));
 
-	QMap<QString, int> vibranceVals;
+	QHash<QString, int> vibranceVals;
 	for(int i = 0; i < ui->displays->count(); i++){
 		displayTab *dpyTab = dynamic_cast<displayTab*>(ui->displays->widget(i));
 		vibranceVals.insert(dpyTab->getName(), dpyTab->getDefaultVibrance());

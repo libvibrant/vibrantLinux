@@ -9,14 +9,9 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	systray.setIcon(QIcon(":/assets/icon.png"));
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
 
-	systrayMenu = new (std::nothrow) QMenu();
-	if(systrayMenu == nullptr){
-		throw std::runtime_error("failed to allocate memory for systray menu");
-	}
-
-	systrayMenu->addAction(ui->actionShowHideWindow);
-	systrayMenu->addAction(ui->actionExit);
-	systray.setContextMenu(systrayMenu);
+	systrayMenu.addAction(ui->actionShowHideWindow);
+	systrayMenu.addAction(ui->actionExit);
+	systray.setContextMenu(&systrayMenu);
 
 	parseConfig();
 
@@ -34,9 +29,8 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	ui->vibranceFocusToggle->setEnabled(false);
 	#endif
 
-	timer = new QTimer(this);
-	connect(timer, &QTimer::timeout, this, &mainWindow::updateVibrance);
-	timer->start(1000);
+	connect(&timer, &QTimer::timeout, this, &mainWindow::updateVibrance);
+	timer.start(1000);
 }
 
 mainWindow::~mainWindow(){
@@ -102,8 +96,6 @@ mainWindow::~mainWindow(){
 		delete dpy;
 	}
 
-	delete systrayMenu;
-	delete timer;
 	delete ui;
 }
 
@@ -142,7 +134,7 @@ void mainWindow::parseConfig(){
 
 			for(auto programRef: settings["programs"].toArray()){
 				QJsonObject program = programRef.toObject();
-				QMap<QString, int> vibranceVals;
+				QHash<QString, int> vibranceVals;
 
 				for(auto vibranceRef: program["vibrance"].toArray()){
 					QJsonObject vibrance = vibranceRef.toObject();
@@ -254,7 +246,7 @@ void mainWindow::addEntry(const QString &path){
 	ui->programs->addItem(item);
 }
 
-void mainWindow::addEntry(const QString &path, const QMap<QString, int> &vibrance){
+void mainWindow::addEntry(const QString &path, const QHash<QString, int> &vibrance){
 	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
 	if(item == nullptr){
 		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
@@ -329,7 +321,7 @@ void mainWindow::updateVibrance(){
 				for(int j = 0; j < ui->displays->count(); j++){
 					displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(j));
 
-					int vibrance = *getItemDpyVibrance(program, dpy->getName());
+					int vibrance = getItemDpyVibrance(program, dpy->getName());
 					if(dpy->getCurrentVibrance() != vibrance){
 						dpy->applyVibrance(vibrance);
 					}
@@ -366,7 +358,7 @@ void mainWindow::updateVibrance(){
 			for(int i = 0; i < ui->displays->count(); i++){
 				displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
 
-				int vibrance = *getItemDpyVibrance(program, dpy->getName());
+				int vibrance = getItemDpyVibrance(program, dpy->getName());
 				if(dpy->getCurrentVibrance() != vibrance){
 					dpy->applyVibrance(vibrance);
 				}
@@ -432,7 +424,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
-									  "only works for NVIDIA systems.\n\nVersion: 1.1.3");
+									  "only works for NVIDIA systems.\n\nVersion: 1.1.4");
 }
 
 void mainWindow::on_donate_clicked(){

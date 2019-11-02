@@ -19,7 +19,7 @@
 #endif
 
 #include "entryeditor.h"
-#include "procmonitor.h"
+#include "procscanner.h"
 #include "displaytab.h"
 #include "programinfo.h"
 #include "utils.h"
@@ -46,7 +46,7 @@ private:
 	void freeAllocatedTabs();
 
 	void addEntry(const QString &path);
-	void addEntry(const QString &path, const QMap<QString, int> &vibrance);
+	void addEntry(const QString &path, const QHash<QString, int> &vibrance);
 	void removeEntry(QListWidgetItem *item);
 
 	#ifndef VIBRANT_LINUX_NO_XCB
@@ -54,15 +54,15 @@ private:
 	#endif
 
 	Ui::mainWindow *ui;
-	procMonitor monitor;
-	QTimer *timer = nullptr;
+	procScanner monitor;
+	QTimer timer;
 
 	#ifndef VIBRANT_LINUX_NO_XCB
 	bool connectedToX = false;
 	xcb_ewmh_connection_t xcon;
 	#endif
 
-	QMenu *systrayMenu;
+	QMenu systrayMenu;
 
 private slots:
 	void updateVibrance();
