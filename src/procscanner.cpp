@@ -26,12 +26,12 @@ void procScanner::updateProcessesVector(){
 	processes.resize(0);
 
 	QDir procDir("/proc");
-	QStringList procs = procDir.entryList(QDir::Filter::AllDirs);
+	QStringList procs = procDir.entryList(QDir::Filter::Dirs);
+	procs = procs.filter(QRegularExpression("^\\d+$"));
+
 	for(auto proc: procs){
 		//only program folders have numbers
-		if(proc[0] >= '0' && proc[0] <= '9'){
-			QFileInfo procInfo("/proc/"+proc+"/exe");
-			processes.emplace_back(procInfo.canonicalFilePath());
-		}
+		QFileInfo procInfo("/proc/"+proc+"/exe");
+		processes.emplace_back(procInfo.canonicalFilePath());
 	}
 }
