@@ -12,8 +12,12 @@
 int main(int argc, char *argv[]){
 	//don't run if the program is already running
 	QString vlPath = QFileInfo("/proc/"+QString::number(getpid())+"/exe").canonicalPath();
-	QStringList procs = QDir("/proc").entryList(QDir::Filter::Dirs);
-	procs = procs.filter("^\\d+$");
+
+	QDir procDir("/proc");
+	QStringList procs = procDir.entryList(QDir::Filter::Dirs);
+	procs = procs.filter(QRegularExpression("^\\d+$"));
+	procs.removeOne(QString::number(getpid()));
+
 	for(auto &proc: procs){
 		if(vlPath == QFileInfo("/proc/"+proc+"/exe").canonicalPath()){
 			std::cout << "Vibrant Linux is already running" << std::endl;
