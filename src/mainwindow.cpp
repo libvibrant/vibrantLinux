@@ -34,49 +34,7 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 }
 
 mainWindow::~mainWindow(){
-	QJsonObject obj;
-
-	//convert displays to json array
-	QJsonArray tmpArr;
-	for(int i = 0; i < ui->displays->count(); i++){
-		displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
-		QJsonObject tmpObj;
-		tmpObj.insert("name", dpy->getName());
-		tmpObj.insert("vibrance", dpy->getDefaultVibrance());
-
-		tmpArr.append(tmpObj);
-	}
-	obj.insert("displays", tmpArr);
-
-	//clear array
-	tmpArr = QJsonArray();
-
-	//convert programs to json array
-	for(int i = 0; i < ui->programs->count(); i++){
-		QListWidgetItem *item = ui->programs->item(i);
-		programInfo *info = getItemInfo(item);
-
-		QJsonObject program;
-		QJsonArray programVibrance;
-		program.insert("path", info->path);
-		for(auto i = info->vibranceVals.begin(); i != info->vibranceVals.end(); i++){
-			QJsonObject vibranceObj;
-			vibranceObj.insert("name", i.key());
-			vibranceObj.insert("vibrance", i.value());
-
-			programVibrance.append(vibranceObj);
-		}
-		program.insert("vibrance", programVibrance);
-
-		tmpArr.append(program);
-	}
-	obj.insert("programs", tmpArr);
-
-
-	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
-	//conversion auto formats json
-	settingsFile.open(QIODevice::WriteOnly);
-	settingsFile.write(QJsonDocument(obj).toJson());
+	writeConfig();
 
 	QListWidgetItem *item;
 	while((item = ui->programs->item(0)) != nullptr){
@@ -218,6 +176,51 @@ void mainWindow::freeAllocatedTabs(){
 	}
 }
 
+void mainWindow::writeConfig(){
+	QJsonObject obj;
+	QJsonArray tmpArr;
+	for(int i = 0; i < ui->displays->count(); i++){
+		displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+		QJsonObject tmpObj;
+		tmpObj.insert("name", dpy->getName());
+		tmpObj.insert("vibrance", dpy->getDefaultVibrance());
+
+		tmpArr.append(tmpObj);
+	}
+	obj.insert("displays", tmpArr);
+
+	//clear array
+	tmpArr = QJsonArray();
+
+	//convert programs to json array
+	for(int i = 0; i < ui->programs->count(); i++){
+		QListWidgetItem *item = ui->programs->item(i);
+		programInfo *info = getItemInfo(item);
+
+		QJsonObject program;
+		QJsonArray programVibrance;
+		program.insert("path", info->path);
+		for(auto i = info->vibranceVals.begin(); i != info->vibranceVals.end(); i++){
+			QJsonObject vibranceObj;
+			vibranceObj.insert("name", i.key());
+			vibranceObj.insert("vibrance", i.value());
+
+			programVibrance.append(vibranceObj);
+		}
+		program.insert("vibrance", programVibrance);
+
+		tmpArr.append(program);
+	}
+	obj.insert("programs", tmpArr);
+
+
+	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
+	//conversion auto formats json
+	settingsFile.open(QIODevice::WriteOnly);
+	settingsFile.write(QJsonDocument(obj).toJson());
+	settingsFile.close();
+}
+
 void mainWindow::addEntry(const QString &path){
 
 	//create a new item
@@ -244,6 +247,9 @@ void mainWindow::addEntry(const QString &path){
 	item->setData(Qt::UserRole, QVariant::fromValue(info));
 
 	ui->programs->addItem(item);
+	/*we want to write when this function is called, the other one is only called
+	when we're loading the config file*/
+	writeConfig();
 }
 
 void mainWindow::addEntry(const QString &path, const QHash<QString, int> &vibrance){
@@ -270,6 +276,8 @@ void mainWindow::removeEntry(QListWidgetItem *item){
 
 	delete getItemInfo(item);
 	delete item;
+
+	writeConfig();
 }
 
 #ifndef VIBRANT_LINUX_NO_XCB
@@ -409,6 +417,7 @@ void mainWindow::on_programs_doubleClicked(const QModelIndex &index){
 	QListWidgetItem *item = ui->programs->item(index.row());
 	entryEditor editor(item, this);
 	editor.exec();
+	writeConfig();
 }
 
 void mainWindow::on_actionShowHideWindow_triggered(){
@@ -424,7 +433,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
-									  "only works for NVIDIA systems.\n\nVersion: 1.1.4");
+									  "only works for NVIDIA systems.\n\nVersion: 1.2.0");
 }
 
 void mainWindow::on_donate_clicked(){

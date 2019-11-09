@@ -44,6 +44,7 @@ private:
 	QJsonObject generateConfig(const QStringList &displayNames);
 	void generateTabs(const QStringList &displayNames);
 	void freeAllocatedTabs();
+	void writeConfig();
 
 	void addEntry(const QString &path);
 	void addEntry(const QString &path, const QHash<QString, int> &vibrance);
@@ -51,16 +52,14 @@ private:
 
 	#ifndef VIBRANT_LINUX_NO_XCB
 	bool establishXConnection();
+
+	bool connectedToX = false;
+	xcb_ewmh_connection_t xcon;
 	#endif
 
 	Ui::mainWindow *ui;
 	procScanner monitor;
 	QTimer timer;
-
-	#ifndef VIBRANT_LINUX_NO_XCB
-	bool connectedToX = false;
-	xcb_ewmh_connection_t xcon;
-	#endif
 
 	QMenu systrayMenu;
 
