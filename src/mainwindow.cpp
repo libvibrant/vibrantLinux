@@ -38,7 +38,7 @@ mainWindow::~mainWindow(){
 
 	QListWidgetItem *item;
 	while((item = ui->programs->item(0)) != nullptr){
-		removeEntry(item, false);
+		removeEntry(item);
 	}
 
 	#ifndef VIBRANT_LINUX_NO_XCB
