@@ -38,7 +38,7 @@ mainWindow::~mainWindow(){
 
 	QListWidgetItem *item;
 	while((item = ui->programs->item(0)) != nullptr){
-		removeEntry(item);
+		removeEntry(item, false);
 	}
 
 	#ifndef VIBRANT_LINUX_NO_XCB
@@ -247,9 +247,6 @@ void mainWindow::addEntry(const QString &path){
 	item->setData(Qt::UserRole, QVariant::fromValue(info));
 
 	ui->programs->addItem(item);
-	/*we want to write when this function is called, the other one is only called
-	when we're loading the config file*/
-	writeConfig();
 }
 
 void mainWindow::addEntry(const QString &path, const QHash<QString, int> &vibrance){
@@ -276,8 +273,6 @@ void mainWindow::removeEntry(QListWidgetItem *item){
 
 	delete getItemInfo(item);
 	delete item;
-
-	writeConfig();
 }
 
 #ifndef VIBRANT_LINUX_NO_XCB
@@ -407,10 +402,12 @@ void mainWindow::on_addProgram_clicked(){
 	}
 
 	addEntry(program);
+	writeConfig();
 }
 
 void mainWindow::on_delProgram_clicked(){
 	removeEntry(ui->programs->selectedItems()[0]);
+	writeConfig();
 }
 
 void mainWindow::on_programs_doubleClicked(const QModelIndex &index){
@@ -433,7 +430,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
-									  "only works for NVIDIA systems.\n\nVersion: 1.2.0");
+									  "only works for NVIDIA systems.\n\nVersion: 1.2.1");
 }
 
 void mainWindow::on_donate_clicked(){
