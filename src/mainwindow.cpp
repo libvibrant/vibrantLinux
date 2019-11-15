@@ -406,8 +406,13 @@ void mainWindow::on_addProgram_clicked(){
 }
 
 void mainWindow::on_delProgram_clicked(){
-	removeEntry(ui->programs->selectedItems()[0]);
-	writeConfig();
+    auto items = ui->programs->selectedItems();
+    if(items.size()){
+        for(auto &item: items){
+            removeEntry(item);
+        }
+        writeConfig();
+    }
 }
 
 void mainWindow::on_programs_doubleClicked(const QModelIndex &index){
@@ -430,7 +435,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
-									  "only works for NVIDIA systems.\n\nVersion: 1.2.1");
+                                      "only works for NVIDIA systems.\n\nVersion: 1.2.2");
 }
 
 void mainWindow::on_donate_clicked(){
