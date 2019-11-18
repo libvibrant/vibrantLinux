@@ -4,9 +4,10 @@
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
-	setWindowIcon(QIcon(":/assets/icon.png"));
+	QIcon icon = QIcon::fromTheme("vibrantLinux", QIcon(":/assets/icon.png"));
+	setWindowIcon(icon);
+	systray.setIcon(icon);
 
-	systray.setIcon(QIcon(":/assets/icon.png"));
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
 
 	systrayMenu.addAction(ui->actionShowHideWindow);
@@ -435,7 +436,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
-                                      "only works for NVIDIA systems.\n\nVersion: 1.2.2");
+									  "only works for NVIDIA systems.\n\nVersion: 1.2.3");
 }
 
 void mainWindow::on_donate_clicked(){
