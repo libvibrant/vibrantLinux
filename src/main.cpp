@@ -11,7 +11,8 @@
 
 int main(int argc, char *argv[]){
 	//don't run if the program is already running
-	QString vlPath = QFileInfo("/proc/"+QString::number(getpid())+"/exe").canonicalPath();
+	QString vlPath = QFileInfo("/proc/"+QString::number(getpid())+"/exe").canonicalFilePath();
+	std::cout << "canonical vlPath: " << vlPath.toStdString() << std::endl;
 
 	QDir procDir("/proc");
 	QStringList procs = procDir.entryList(QDir::Filter::Dirs);
