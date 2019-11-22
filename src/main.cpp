@@ -19,7 +19,7 @@ int main(int argc, char *argv[]){
 	procs.removeOne(QString::number(getpid()));
 
 	for(auto &proc: procs){
-		if(vlPath == QFileInfo("/proc/"+proc+"/exe").canonicalPath()){
+		if(vlPath == QFileInfo("/proc/"+proc+"/exe").canonicalFilePath()){
 			std::cout << "Vibrant Linux is already running" << std::endl;
 			return EXIT_SUCCESS;
 		}
