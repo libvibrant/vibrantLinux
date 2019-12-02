@@ -20,8 +20,7 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 
 	#ifndef VIBRANT_LINUX_NO_XCB
 	//try to establish an X connection, if we can't then scan the /proc/ folder every second
-	if(!establishXConnection()){
-		connectedToX = false;
+	if(!programScanner.isConnectedToX()){
 		ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
 		ui->vibranceFocusToggle->setEnabled(false);
 	}
@@ -41,12 +40,6 @@ mainWindow::~mainWindow(){
 	while((item = ui->programs->item(0)) != nullptr){
 		removeEntry(item);
 	}
-
-	#ifndef VIBRANT_LINUX_NO_XCB
-	if(connectedToX){
-		xcb_disconnect(xcon.connection);
-	}
-	#endif
 
 	//destruct vector before displays
 	displayTab *dpy;
@@ -275,66 +268,9 @@ void mainWindow::removeEntry(QListWidgetItem *item){
 	delete getItemInfo(item);
 	delete item;
 }
-
-#ifndef VIBRANT_LINUX_NO_XCB
-bool mainWindow::establishXConnection(){
-	xcon.connection = xcb_connect(nullptr, nullptr);
-	if(xcb_connection_has_error(xcon.connection)){
-		xcb_disconnect(xcon.connection);
-		return false;
-	}
-
-	xcb_intern_atom_cookie_t *cookies;
-	cookies = xcb_ewmh_init_atoms(xcon.connection, &xcon);
-	if(!xcb_ewmh_init_atoms_replies(&xcon, cookies, nullptr)){
-		xcb_disconnect(xcon.connection);
-		return false;
-	}
-
-	return true;
-}
-#endif
-
 void mainWindow::updateVibrance(){
-	#ifndef VIBRANT_LINUX_NO_XCB
-	if(ui->vibranceFocusToggle->isChecked()){
-		//get the current active window
-		xcb_get_property_cookie_t cookie;
-		xcb_window_t activeWindow;
-		xcb_generic_error_t *e = nullptr;
-
-		cookie = xcb_ewmh_get_active_window(&xcon, 0);
-		if(!xcb_ewmh_get_active_window_reply(&xcon, cookie, &activeWindow, &e)){
-			return;
-		}
-
-		uint32_t pid = 0;
-		cookie = xcb_ewmh_get_wm_pid(&xcon, activeWindow);
-		if(!xcb_ewmh_get_wm_pid_reply(&xcon, cookie, &pid, &e)){
-			return;
-		}
-
-		QFileInfo procInfo("/proc/"+QString::number(pid)+"/exe");
-		QString procPath = procInfo.canonicalFilePath();
-
-		//check if the active window program is in our list
-		for(int i = 0; i < ui->programs->count(); i++){
-			QListWidgetItem *program = ui->programs->item(i);
-			//if it is in our list then loop through the displays and apply the appropriate vibrance
-			if(procPath == getItemPath(program)){
-				for(int j = 0; j < ui->displays->count(); j++){
-					displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(j));
-
-					int vibrance = getItemDpyVibrance(program, dpy->getName());
-					if(dpy->getCurrentVibrance() != vibrance){
-						dpy->applyVibrance(vibrance);
-					}
-				}
-				return;
-			}
-		}
-
-		//the active window is not in our watchlist so apply the default vibrance
+	auto program = programScanner.getVibrance(ui->programs);
+	if(program == nullptr){
 		for(int i = 0; i < ui->displays->count(); i++){
 			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
 
@@ -345,54 +281,29 @@ void mainWindow::updateVibrance(){
 		}
 	}
 	else{
-	#endif
-		QListWidgetItem *program = monitor.getVibrance(ui->programs);
+		for(int i = 0; i < ui->displays->count(); i++){
+			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
 
-		if(program == nullptr){
-			for(int i = 0; i < ui->displays->count(); i++){
-				displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
-
-				int vibrance = dpy->getDefaultVibrance();
-				if(dpy->getCurrentVibrance() != vibrance){
-					dpy->applyVibrance(vibrance);
-				}
+			int vibrance = getItemDpyVibrance(program, dpy->getName());
+			if(dpy->getCurrentVibrance() != vibrance){
+				dpy->applyVibrance(vibrance);
 			}
 		}
-		else{
-			for(int i = 0; i < ui->displays->count(); i++){
-				displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
-
-				int vibrance = getItemDpyVibrance(program, dpy->getName());
-				if(dpy->getCurrentVibrance() != vibrance){
-					dpy->applyVibrance(vibrance);
-				}
-			}
-		}
-	#ifndef VIBRANT_LINUX_NO_XCB
 	}
-	#endif
 }
 
 void mainWindow::on_vibranceFocusToggle_clicked(bool checked){
-	Q_UNUSED(checked)
-#ifndef VIBRANT_LINUX_NO_XCB
+	#ifndef VIBRANT_LINUX_NO_XCB
+	programScanner.setUseX(checked);
+	//user tried to turn on ewmh features but it programScanner failed to set it up
 	if(checked){
-		if(!connectedToX){
-			if(!establishXConnection()){
-				QMessageBox::warning(this, "ewmh error", "failed to establish connection "
-									"to X server");
-				ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-			}
-			connectedToX = true;
+		if(!programScanner.isUsingX()){
+			ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
 		}
 	}
-	else{
-		if(connectedToX){
-			xcb_disconnect(xcon.connection);
-			connectedToX = false;
-		}
-	}
-#endif
+	#else
+	Q_UNUSED(checked)
+	#endif
 }
 
 void mainWindow::on_addProgram_clicked(){
@@ -400,6 +311,11 @@ void mainWindow::on_addProgram_clicked(){
 		"Executable (*)", nullptr);
 	if(program.isNull()){
 		return;
+	}
+
+	auto fileInfo = QFileInfo(program);
+	if(fileInfo.isSymLink()){
+		program = fileInfo.symLinkTarget();
 	}
 
 	addEntry(program);
@@ -436,7 +352,7 @@ void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About", "Vibrant linux is a program to automatically set "
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
-									  "only works for NVIDIA systems.\n\nVersion: 1.2.4");
+									  "only works for NVIDIA systems.\n\nVersion: 1.2.5");
 }
 
 void mainWindow::on_donate_clicked(){

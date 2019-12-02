@@ -28,6 +28,12 @@ void entryEditor::on_pathSelect_clicked(){
 	if(program.isNull()){
 		return;
 	}
+
+	auto fileInfo = QFileInfo(program);
+	if(fileInfo.isSymLink()){
+		program = fileInfo.symLinkTarget();
+	}
+
 	ui->path->setText(program);
 }
 

@@ -10,7 +10,7 @@ QString pathToName(const QString &path);
 
 programInfo* getItemInfo(QListWidgetItem *item);
 
-QString& getItemPath(QListWidgetItem *item);
+QString getItemPath(QListWidgetItem *item);
 
 QString getItemName(QListWidgetItem *item);
 

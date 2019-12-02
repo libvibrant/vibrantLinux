@@ -14,10 +14,6 @@
 #include <QMessageBox>
 #include <QMenu>
 
-#ifndef VIBRANT_LINUX_NO_XCB
-#include <xcb/xcb_ewmh.h>
-#endif
-
 #include "entryeditor.h"
 #include "procscanner.h"
 #include "displaytab.h"
@@ -50,15 +46,8 @@ private:
 	void addEntry(const QString &path, const QHash<QString, int> &vibrance);
 	void removeEntry(QListWidgetItem *item);
 
-	#ifndef VIBRANT_LINUX_NO_XCB
-	bool establishXConnection();
-
-	bool connectedToX = false;
-	xcb_ewmh_connection_t xcon;
-	#endif
-
 	Ui::mainWindow *ui;
-	procScanner monitor;
+	procScanner programScanner;
 	QTimer timer;
 
 	QMenu systrayMenu;

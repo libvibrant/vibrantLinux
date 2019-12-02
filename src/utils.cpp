@@ -8,7 +8,7 @@ programInfo* getItemInfo(QListWidgetItem *item){
 	return item->data(Qt::UserRole).value<programInfo*>();
 }
 
-QString& getItemPath(QListWidgetItem *item){
+QString getItemPath(QListWidgetItem *item){
 	return item->data(Qt::UserRole).value<programInfo*>()->path;
 }
 
