@@ -26,22 +26,6 @@ libxcb (optional)
 libxcb-ewmh (optional)
 ```
 
-## Ubuntu
-
-```
-sudo apt-get install build-essential qtcreator qt5-default git
-#xcb is optional
-sudo apt-get install libxcb-dev libxcb-ewmh-dev
-```
-
-## Arch Linux
-
-```
-sudo pacman -S nvidia-settings qt5-base git
-#xcb is optional
-sudo pacman -S libxcb xcb-util-wm
-```
-
 # Installation
 
 ```
