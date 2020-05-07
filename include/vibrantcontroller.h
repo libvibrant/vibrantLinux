@@ -1,9 +1,7 @@
 #ifndef VIBRANTCONTROLLER_H
 #define VIBRANTCONTROLLER_H
 
-extern "C" {
-    #include <vibrant/vibrant.h>
-}
+#include <vibrant/vibrant.h>
 
 #undef Bool
 #undef CursorShape
