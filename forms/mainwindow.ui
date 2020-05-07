@@ -20,45 +20,21 @@
     </font>
    </property>
    <layout class="QGridLayout" name="gridLayout">
-    <item row="4" column="0" colspan="2">
-     <widget class="QTabWidget" name="displays">
-      <property name="currentIndex">
-       <number>-1</number>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="0" colspan="2">
-     <widget class="QListWidget" name="programs"/>
-    </item>
-    <item row="5" column="0">
+    <item row="4" column="0">
      <widget class="QPushButton" name="addProgram">
       <property name="text">
        <string>Add program</string>
       </property>
      </widget>
     </item>
-    <item row="5" column="1">
-     <widget class="QPushButton" name="delProgram">
-      <property name="text">
-       <string>Remove program</string>
+    <item row="3" column="0" colspan="2">
+     <widget class="QTabWidget" name="displays">
+      <property name="currentIndex">
+       <number>-1</number>
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QPushButton" name="donate">
-      <property name="text">
-       <string>Donate!</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="0">
-     <widget class="QLabel" name="donateText">
-      <property name="text">
-       <string>Like the program? Consider donating!</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="0">
+    <item row="2" column="0">
      <widget class="QCheckBox" name="vibranceFocusToggle">
       <property name="text">
        <string>Set vibrance only when program is in focus</string>
@@ -67,6 +43,16 @@
        <bool>true</bool>
       </property>
      </widget>
+    </item>
+    <item row="4" column="1">
+     <widget class="QPushButton" name="delProgram">
+      <property name="text">
+       <string>Remove program</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0" colspan="2">
+     <widget class="QListWidget" name="programs"/>
     </item>
    </layout>
   </widget>

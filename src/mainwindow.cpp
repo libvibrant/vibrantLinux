@@ -1,7 +1,7 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
+mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow), manager(true){
 	ui->setupUi(this);
 
 	QIcon icon = QIcon::fromTheme("vibrantLinux", QIcon(":/assets/icon.png"));
@@ -15,21 +15,20 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	systray.setContextMenu(&systrayMenu);
 
 	parseConfig();
+	for(int i = 0; i < ui->displays->count(); i++){
+		auto dpyTab = dynamic_cast<displayTab*>(ui->displays->widget(i));
+		connect(dpyTab, &displayTab::onSaturationChange, this, &mainWindow::defaultSaturationChanged);
+	}
 
 	systray.show();
 
-	#ifndef VIBRANT_LINUX_NO_XCB
-	//try to establish an X connection, if we can't then scan the /proc/ folder every second
-	if(!programScanner.isConnectedToX()){
+	//try to establish an X connection, if we can't then we don't check for focus
+	if(!manager.isCheckingWindowFocus()){
 		ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
 		ui->vibranceFocusToggle->setEnabled(false);
 	}
-	#else
-	ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-	ui->vibranceFocusToggle->setEnabled(false);
-	#endif
 
-	connect(&timer, &QTimer::timeout, this, &mainWindow::updateVibrance);
+	connect(&timer, &QTimer::timeout, this, &mainWindow::updateSaturation);
 	timer.start(1000);
 }
 
@@ -53,7 +52,7 @@ mainWindow::~mainWindow(){
 
 void mainWindow::parseConfig(){
 	QJsonObject settings;
-	QStringList displayNames = displayTab::getDisplayNames();
+	QStringList displayNames = manager.getDisplayNames();
 
 	//check if config file exists, and if it does read it. Otherwise generate one
 	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
@@ -79,8 +78,7 @@ void mainWindow::parseConfig(){
 					throw std::runtime_error("failed to allocate memory for display tabs");
 				}
 
-				int vibrance = dpyTab->getCurrentVibrance();
-				dpyTab->setDefaultVibrance(vibrance);
+				dpyTab->setSaturation(manager.getDisplaySaturation(dpyTab->getName()));
 				ui->displays->addTab(dpyTab, dpyTab->getName());
 			}
 
@@ -133,7 +131,7 @@ QJsonObject mainWindow::generateConfig(const QStringList &displayNames){
 	for(auto &name: displayNames){
 		QJsonObject dpyObject;
 		dpyObject.insert("name", name);
-		dpyObject.insert("vibrance", displayTab::getNvidiaSettingsVibrance(name));
+		dpyObject.insert("vibrance", manager.getDisplaySaturation(name));
 
 		tmpArr.append(dpyObject);
 	}
@@ -156,8 +154,7 @@ void mainWindow::generateTabs(const QStringList &displayNames){
 			throw std::runtime_error("failed to allocate memory for display tabs");
 		}
 
-		int vibrance = dpyTab->getCurrentVibrance();
-		dpyTab->setDefaultVibrance(vibrance);
+		dpyTab->setSaturation(manager.getDisplaySaturation(name));
 		ui->displays->addTab(dpyTab, name);
 	}
 }
@@ -177,7 +174,7 @@ void mainWindow::writeConfig(){
 		displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
 		QJsonObject tmpObj;
 		tmpObj.insert("name", dpy->getName());
-		tmpObj.insert("vibrance", dpy->getDefaultVibrance());
+		tmpObj.insert("vibrance", dpy->getSaturation());
 
 		tmpArr.append(tmpObj);
 	}
@@ -189,12 +186,12 @@ void mainWindow::writeConfig(){
 	//convert programs to json array
 	for(int i = 0; i < ui->programs->count(); i++){
 		QListWidgetItem *item = ui->programs->item(i);
-		programInfo *info = getItemInfo(item);
+		programInfo *info = item->data(Qt::UserRole).value<programInfo*>();
 
 		QJsonObject program;
 		QJsonArray programVibrance;
 		program.insert("path", info->path);
-		for(auto i = info->vibranceVals.begin(); i != info->vibranceVals.end(); i++){
+		for(auto i = info->saturationVals.begin(); i != info->saturationVals.end(); i++){
 			QJsonObject vibranceObj;
 			vibranceObj.insert("name", i.key());
 			vibranceObj.insert("vibrance", i.value());
@@ -216,41 +213,24 @@ void mainWindow::writeConfig(){
 }
 
 void mainWindow::addEntry(const QString &path){
-
-	//create a new item
-	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
-	if(item == nullptr){
-		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
-		return;
-	}
-
-	//create userdata for the item
-	programInfo *info = new (std::nothrow) programInfo(path);
-	if(info == nullptr){
-		delete item;
-		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
-		return;
-	}
-
+	QHash<QString, int> saturationVals;
 	//assign a vibrance value to each display
 	for(int i = 0; i < ui->displays->count(); i++){
-		displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(0));
-		info->vibranceVals.insert(dpy->getName(), dpy->getDefaultVibrance());
+		displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+		saturationVals.insert(dpy->getName(), dpy->getSaturation());
 	}
 
-	item->setData(Qt::UserRole, QVariant::fromValue(info));
-
-	ui->programs->addItem(item);
+	addEntry(path, saturationVals);
 }
 
-void mainWindow::addEntry(const QString &path, const QHash<QString, int> &vibrance){
-	QListWidgetItem *item = new (std::nothrow) QListWidgetItem(pathToName(path));
+void mainWindow::addEntry(const QString &path, const QHash<QString, int> &saturationVals){
+	auto item = new (std::nothrow) QListWidgetItem(programInfo::exeNameFromPath(path));
 	if(item == nullptr){
 		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
 		return;
 	}
 
-	programInfo *info = new (std::nothrow) programInfo(path, vibrance);
+	auto info = new (std::nothrow) programInfo{path, saturationVals};
 	if(info == nullptr){
 		delete item;
 		QMessageBox::warning(this, "Not enough memory", "Failed to allocate memory for new item entry");
@@ -258,56 +238,38 @@ void mainWindow::addEntry(const QString &path, const QHash<QString, int> &vibran
 	}
 
 	item->setData(Qt::UserRole, QVariant::fromValue(info));
-
 	ui->programs->addItem(item);
 }
 
 void mainWindow::removeEntry(QListWidgetItem *item){
 	ui->programs->takeItem(ui->programs->row(item));
+	auto info = item->data(Qt::UserRole).value<programInfo*>();
 
-	delete getItemInfo(item);
+	delete info;
 	delete item;
 }
-void mainWindow::updateVibrance(){
-	auto program = programScanner.getVibrance(ui->programs);
-	if(program == nullptr){
-		for(int i = 0; i < ui->displays->count(); i++){
-			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
 
-			int vibrance = dpy->getDefaultVibrance();
-			if(dpy->getCurrentVibrance() != vibrance){
-				dpy->applyVibrance(vibrance);
-			}
-		}
-	}
-	else{
-		for(int i = 0; i < ui->displays->count(); i++){
-			displayTab *dpy = dynamic_cast<displayTab*>(ui->displays->widget(i));
+void mainWindow::updateSaturation(){
+	manager.updateSaturation(ui->programs);
+}
 
-			int vibrance = getItemDpyVibrance(program, dpy->getName());
-			if(dpy->getCurrentVibrance() != vibrance){
-				dpy->applyVibrance(vibrance);
-			}
-		}
-	}
+void mainWindow::defaultSaturationChanged(const QString &name, int value){
+	manager.setDefaultDisplaySaturation(name, value);
 }
 
 void mainWindow::on_vibranceFocusToggle_clicked(bool checked){
-	#ifndef VIBRANT_LINUX_NO_XCB
-	programScanner.setUseX(checked);
+	manager.checkWindowFocus(checked);
 	//user tried to turn on ewmh features but it programScanner failed to set it up
 	if(checked){
-		if(!programScanner.isUsingX()){
+		if(!manager.isCheckingWindowFocus()){
 			ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+			QMessageBox::warning(this, "Error", "Failed to connect to X server, cannot enable focus checking");
 		}
 	}
-	#else
-	Q_UNUSED(checked)
-	#endif
 }
 
 void mainWindow::on_addProgram_clicked(){
-	QString program = QFileDialog::getOpenFileName(this, tr("Select a program"), QDir::homePath(),
+	QString program = QFileDialog::getOpenFileName(this, "Select a program", QDir::homePath(),
 		"Executable (*)", nullptr);
 	if(program.isNull()){
 		return;
@@ -323,13 +285,13 @@ void mainWindow::on_addProgram_clicked(){
 }
 
 void mainWindow::on_delProgram_clicked(){
-    auto items = ui->programs->selectedItems();
-    if(items.size()){
-        for(auto &item: items){
-            removeEntry(item);
-        }
-        writeConfig();
-    }
+	auto items = ui->programs->selectedItems();
+	if(items.size()){
+		for(auto &item: items){
+			removeEntry(item);
+		}
+		writeConfig();
+	}
 }
 
 void mainWindow::on_programs_doubleClicked(const QModelIndex &index){
@@ -353,10 +315,6 @@ void mainWindow::on_actionAbout_triggered(){
 									  "the color saturation of specific monitors depending "
 									  "on what program is current running.\n\nThis program currently "
 									  "only works for NVIDIA systems.\n\nVersion: 1.2.5");
-}
-
-void mainWindow::on_donate_clicked(){
-	QDesktopServices::openUrl(QUrl("https://paypal.me/vibrantlinux"));
 }
 
 void mainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason){

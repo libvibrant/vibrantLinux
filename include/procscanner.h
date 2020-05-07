@@ -5,40 +5,31 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QListWidget>
+#include <QRegularExpression>
 
-#ifndef VIBRANT_LINUX_NO_XCB
+#include "programinfo.h"
+
 #include <xcb/xcb_ewmh.h>
-#endif
-
-#include <vector>
-
-#include "utils.h"
 
 class procScanner{
 public:
-	procScanner();
+	procScanner(bool checkWindowFocus);
 	~procScanner();
 
 	//if this returns nullptr it means no programs in the watch list are running
-	QListWidgetItem* getVibrance(QListWidget *&watchList);
+	const programInfo* getSaturation(QListWidget* watchlist);
 
-	#ifndef VIBRANT_LINUX_NO_XCB
 	bool establishXCon();
 
-	void setUseX(bool use);
-	bool isUsingX();
-	bool isConnectedToX();
-	#endif
+	void setCheckWindowFocus(bool use);
+	bool isCheckingWindowFocus();
 
 private:
 	std::vector<QString> processes;
 
-	#ifndef VIBRANT_LINUX_NO_XCB
-	bool useX = false;
-
+	bool checkWindowFocus = false;
 	bool connectedToX = false;
 	xcb_ewmh_connection_t xcon;
-	#endif
 };
 
 #endif // PROCMONITOR_H

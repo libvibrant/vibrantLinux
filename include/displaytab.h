@@ -14,12 +14,10 @@
 #include <QString>
 #include <QStringList>
 
-#include "utils.h"
-
 class displayTab : public QWidget{
 	Q_OBJECT
 public:
-	displayTab(QString name, QWidget *parent = nullptr, bool getVibrance = true);
+	displayTab(QString name, QWidget *parent = nullptr);
 	displayTab(const displayTab &other);
 	displayTab(displayTab &&other) noexcept;
 	~displayTab();
@@ -66,22 +64,18 @@ public:
 		return name == other.name;
 	}
 
-	void applyVibrance(int vibrance);
-
-	//gets a list of all of the display names from nvidia-settings
-	static QStringList getDisplayNames();
-	//gets the vibrance of the display @name from nvidia-settings
-	static int getNvidiaSettingsVibrance(const QString &name);
-
-	//get the default vibrance level to apply when no program in our watchlist is running
-	int getDefaultVibrance();
-	void setDefaultVibrance(int value);
-
-	//get the currently applied vibrance level for this display
-	int getCurrentVibrance();
+	int getSaturation();
+	void setSaturation(int saturation);
 
 	const QString& getName();
 	void setName(QString name);
+
+//we need to do stuff when the values are changed by the user and then emit a signal so that mainwindow can be aware of this
+private slots:
+	void saturationChanged(int value);
+
+signals:
+	void onSaturationChange(const QString &name, int value);
 
 private:
 	void makeTab();

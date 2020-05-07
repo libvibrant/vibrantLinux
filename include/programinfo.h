@@ -5,15 +5,17 @@
 #include <QHash>
 #include <QMetaType>
 
-struct programInfo{
-	programInfo(const QString &path):
-		path(path){}
+class programInfo{
+public:
+	programInfo(const QString &path, const QHash<QString, int> &saturationVals):
+		path(path), saturationVals(saturationVals){}
 
-	programInfo(const QString &path, const QHash<QString, int> &vibranceVals):
-		path(path), vibranceVals(vibranceVals){}
+	static QString exeNameFromPath(const QString &path){
+		return path.split('/').last();
+	}
 
 	QString path;
-	QHash<QString, int> vibranceVals;
+	QHash<QString, int> saturationVals;
 };
 
 Q_DECLARE_METATYPE(programInfo*)

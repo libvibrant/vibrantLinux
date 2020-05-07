@@ -1,13 +1,12 @@
-#include "mainwindow.h"
-
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QDir>
 #include <QFileInfo>
 
 #include <unistd.h>
-
 #include <iostream>
+
+#include "mainwindow.h"
 
 int main(int argc, char *argv[]){
 	//don't run if the program is already running

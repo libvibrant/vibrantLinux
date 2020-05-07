@@ -8,7 +8,7 @@
 #include <QListWidgetItem>
 
 #include "displaytab.h"
-#include "utils.h"
+#include "programinfo.h"
 
 namespace Ui {
 	class entryEditor;
@@ -18,7 +18,8 @@ class entryEditor : public QDialog{
 	Q_OBJECT
 
 public:
-	explicit entryEditor(QListWidgetItem *entry, QWidget *parent = nullptr);
+	//the user data for this should point to a programInfo struct
+	explicit entryEditor(QListWidgetItem* entry, QWidget *parent = nullptr);
 	~entryEditor();
 
 private slots:
@@ -28,7 +29,7 @@ private slots:
 private:
 	Ui::entryEditor *ui;
 	QListWidgetItem *entry;
-	programInfo *entryInfo;
+	programInfo *info;
 };
 
 #endif // ENTRYEDITOR_H

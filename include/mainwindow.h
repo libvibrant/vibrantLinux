@@ -15,10 +15,8 @@
 #include <QMenu>
 
 #include "entryeditor.h"
-#include "procscanner.h"
 #include "displaytab.h"
-#include "programinfo.h"
-#include "utils.h"
+#include "displaymanager.h"
 
 namespace Ui {
 class mainWindow;
@@ -47,13 +45,16 @@ private:
 	void removeEntry(QListWidgetItem *item);
 
 	Ui::mainWindow *ui;
-	procScanner programScanner;
+
+	displayManager manager;
+	QString displayNames;
 	QTimer timer;
 
 	QMenu systrayMenu;
 
 private slots:
-	void updateVibrance();
+	void updateSaturation();
+	void defaultSaturationChanged(const QString &name, int value);
 
 	/*we have to keep the function in case VIBRANT_LINUX_NO_XCB is defined
 	otherwise moc_mainwindow will contain an undefined refernece to it*/
@@ -65,8 +66,6 @@ private slots:
 	void on_actionShowHideWindow_triggered();
 	void on_actionExit_triggered();
 	void on_actionAbout_triggered();
-
-	void on_donate_clicked();
 
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
 };

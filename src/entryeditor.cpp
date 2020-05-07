@@ -1,20 +1,15 @@
 #include "entryeditor.h"
 #include "ui_entryeditor.h"
 
-entryEditor::entryEditor(QListWidgetItem *entry, QWidget *parent) : QDialog(parent),
-ui(new Ui::entryEditor), entry(entry){
+entryEditor::entryEditor(QListWidgetItem* entry, QWidget *parent) : QDialog(parent),
+ui(new Ui::entryEditor), entry(entry), info(entry->data(Qt::UserRole).value<programInfo*>()){
 	ui->setupUi(this);
 
-	entryInfo = getItemInfo(entry);
-
-	ui->path->setText(entryInfo->path);
-
-	QStringList displayNames = displayTab::getDisplayNames();
-
-	for(auto &dpy: displayNames){
-		displayTab *dpyTab = new (std::nothrow) displayTab(dpy, ui->displays, false);
-		dpyTab->setDefaultVibrance((entryInfo->vibranceVals[dpy]));
-		ui->displays->addTab(dpyTab, dpy);
+	ui->path->setText(info->path);
+	for(auto it = info->saturationVals.begin(); it != info->saturationVals.end(); it++){
+		auto *dpyTab = new (std::nothrow) displayTab(it.key(), ui->displays);
+		dpyTab->setSaturation(it.value());
+		ui->displays->addTab(dpyTab, it.key());
 	}
 }
 
@@ -38,14 +33,11 @@ void entryEditor::on_pathSelect_clicked(){
 }
 
 void entryEditor::on_buttonBox_accepted(){
-	entryInfo->path = ui->path->text();
-	entry->setText(pathToName(ui->path->text()));
+	info->path = ui->path->text();
+	entry->setText(programInfo::exeNameFromPath(ui->path->text()));
 
-	QHash<QString, int> vibranceVals;
 	for(int i = 0; i < ui->displays->count(); i++){
 		displayTab *dpyTab = dynamic_cast<displayTab*>(ui->displays->widget(i));
-		vibranceVals.insert(dpyTab->getName(), dpyTab->getDefaultVibrance());
+		info->saturationVals[dpyTab->getName()] = dpyTab->getSaturation();
 	}
-
-	entryInfo->vibranceVals = vibranceVals;
 }

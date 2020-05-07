@@ -1,20 +1,20 @@
 #include "procscanner.h"
 
-procScanner::procScanner(){
-	#ifndef VIBRANT_LINUX_NO_XCB
-	connectedToX = useX = establishXCon();
-	#endif
+procScanner::procScanner(bool checkWindowFocus): checkWindowFocus(checkWindowFocus){
+	if(checkWindowFocus){
+		connectedToX = establishXCon();
+		if(!connectedToX){
+			checkWindowFocus = false;
+		}
+	}
 }
 
 procScanner::~procScanner(){
-	#ifndef VIBRANT_LINUX_NO_XCB
 	if(connectedToX){
 		xcb_disconnect(xcon.connection);
 	}
-	#endif
 }
 
-#ifndef VIBRANT_LINUX_NO_XCB
 bool procScanner::establishXCon(){
 	xcon.connection = xcb_connect(nullptr, nullptr);
 	if(xcb_connection_has_error(xcon.connection)){
@@ -32,35 +32,27 @@ bool procScanner::establishXCon(){
 	return true;
 }
 
-void procScanner::setUseX(bool use){
+void procScanner::setCheckWindowFocus(bool use){
 	if(use){
 		if(connectedToX){
-			useX = use;
+			checkWindowFocus = use;
 		}
 		else{
-			connectedToX = useX = establishXCon();
+			connectedToX = checkWindowFocus = establishXCon();
 		}
 	}
 	else{
 		xcb_disconnect(xcon.connection);
-		connectedToX = useX = use;
+		connectedToX = checkWindowFocus = use;
 	}
 }
 
-bool procScanner::isUsingX(){
-	return useX;
+bool procScanner::isCheckingWindowFocus(){
+	return checkWindowFocus;
 }
 
-bool procScanner::isConnectedToX(){
-	return connectedToX;
-}
-#endif
-
-QListWidgetItem* procScanner::getVibrance(QListWidget *&watchList){
-	QListWidgetItem *res = nullptr;
-
-	#ifndef VIBRANT_LINUX_NO_XCB
-	if(useX){
+const programInfo* procScanner::getSaturation(QListWidget* watchlist){
+	if(checkWindowFocus){
 		//get the current active window
 		xcb_get_property_cookie_t cookie;
 		xcb_window_t activeWindow;
@@ -80,19 +72,14 @@ QListWidgetItem* procScanner::getVibrance(QListWidget *&watchList){
 		QString procPath = QFileInfo("/proc/"+QString::number(pid)+"/exe").canonicalFilePath();
 
 		//check if the active window program is in our list
-		for(int i = 0; i < watchList->count(); i++){
-			QListWidgetItem *tmp = watchList->item(i);
-			QString itemPath = getItemPath(tmp);
-			if(procPath == getItemPath(tmp)){
-				res = tmp;
-				break;
+		for(int i = 0; i < watchlist->count(); i++){
+			auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo*>();
+			if(procPath == info->path){
+				return info;
 			}
 		}
-
-		return res;
 	}
 	else{
-	#endif
 		processes.resize(0);
 
 		QDir procDir("/proc");
@@ -105,18 +92,15 @@ QListWidgetItem* procScanner::getVibrance(QListWidget *&watchList){
 			processes.emplace_back(procInfo.canonicalFilePath());
 		}
 
-		//traverse in reverse. First items get priority in vibrance control
-		for(int i = watchList->count()-1; i >= 0; i--){
-			QListWidgetItem *item = watchList->item(i);
+		for(int i = 0; i < watchlist->count(); i++){
+			auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo*>();
 			for(auto &process: processes){
-				if(process == getItemPath(item)){
-					res = watchList->item(i);
+				if(process == info->path){
+					return info;
 				}
 			}
 		}
-	#ifndef VIBRANT_LINUX_NO_XCB
 	}
-	#endif
 
-	return res;
+	return nullptr;
 }
