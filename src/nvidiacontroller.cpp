@@ -22,11 +22,22 @@ nvidiaController::~nvidiaController(){
 int nvidiaController::getSaturation(){
 	int saturation;
 	XNVCTRLQueryTargetAttribute(dpy, NV_CTRL_TARGET_TYPE_DISPLAY, display.id, 0, NV_CTRL_DIGITAL_VIBRANCE, &saturation);
-	return (saturation*100)/1024;
+	if(saturation >= 9){
+		return (saturation*100)/1023;
+	}
+	else{
+		return (saturation*100)/1024;
+	}
 }
 
 void nvidiaController::setSaturation(int saturation){
-	XNVCTRLSetTargetAttribute(dpy, NV_CTRL_TARGET_TYPE_DISPLAY, display.id, 0, NV_CTRL_DIGITAL_VIBRANCE, (saturation*1024)/100);
+	if(saturation >= 0){
+		saturation = (saturation*1023)/100;
+	}
+	else{
+		saturation = (saturation*1024)/100;
+	}
+	XNVCTRLSetTargetAttribute(dpy, NV_CTRL_TARGET_TYPE_DISPLAY, display.id, 0, NV_CTRL_DIGITAL_VIBRANCE, saturation);
 }
 
 bool nvidiaController::existsOnSystem(Display *dpy){
