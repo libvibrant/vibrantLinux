@@ -31,7 +31,8 @@ LIBS += \
 	-lxcb-ewmh \
 	-lX11 \
 	-lXrandr \
-	-lXNVCtrl
+	-lXNVCtrl \
+        -lvibrant
 
 SOURCES += \
 	src/displaymanager.cpp \
@@ -40,7 +41,8 @@ SOURCES += \
 	src/main.cpp \
 	src/mainwindow.cpp \
 	src/nvidiacontroller.cpp \
-	src/procscanner.cpp
+	src/procscanner.cpp \
+	src/vibrantcontroller.cpp
 
 HEADERS += \
 	include/displaycontroller.h \
@@ -50,7 +52,8 @@ HEADERS += \
 	include/mainwindow.h \
 	include/nvidiacontroller.h \
 	include/procscanner.h \
-	include/programinfo.h
+	include/programinfo.h \
+	include/vibrantcontroller.h
 
 FORMS += \
 	forms/entryeditor.ui \
