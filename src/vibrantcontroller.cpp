@@ -21,13 +21,13 @@ vibrantController::~vibrantController(){
 
 int vibrantController::getSaturation(){
     int x_status;
-    double saturation = get_saturation(dpy, output, &x_status) * 100;
-    int roundedSaturation = qRound(saturation * 100);
+    double saturation = get_saturation(dpy, output, &x_status);
+    int roundedSaturation = qRound(saturation * 100) - 100;
     // normalize saturation to be between -100 and 100, 0 being neutral
-    if (roundedSaturation <= 100) {
-        return roundedSaturation - 100;
+    if (roundedSaturation <= 0) {
+        return roundedSaturation;
     } else {
-        return roundedSaturation / 4;
+        return roundedSaturation / 3;
     }
 }
 
@@ -36,10 +36,11 @@ void vibrantController::setSaturation(int saturation){
     // convert normalized value to a value vibrant can work with
     double actualSaturation;
     if (saturation <= 0) {
-        actualSaturation = (saturation + 100) / 100.0;
+        actualSaturation = saturation;
     } else {
-        actualSaturation = saturation * 4.0;
+        actualSaturation = saturation * 3.0;
     }
-
+    actualSaturation += 100.0;
+    actualSaturation /= 100.0;
     set_saturation(dpy, output, actualSaturation, &x_status);
 }
