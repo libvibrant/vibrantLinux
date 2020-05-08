@@ -35,16 +35,17 @@ LIBS += \
         -lvibrant
 
 SOURCES += \
+	src/ctmcontroller.cpp \
 	src/displaymanager.cpp \
 	src/displaytab.cpp \
 	src/entryeditor.cpp \
 	src/main.cpp \
 	src/mainwindow.cpp \
 	src/nvidiacontroller.cpp \
-	src/procscanner.cpp \
-	src/vibrantcontroller.cpp
+	src/procscanner.cpp
 
 HEADERS += \
+	include/ctmcontroller.h \
 	include/displaycontroller.h \
 	include/displaymanager.h \
 	include/displaytab.h \
@@ -52,8 +53,7 @@ HEADERS += \
 	include/mainwindow.h \
 	include/nvidiacontroller.h \
 	include/procscanner.h \
-	include/programinfo.h \
-	include/vibrantcontroller.h
+	include/programinfo.h
 
 FORMS += \
 	forms/entryeditor.ui \

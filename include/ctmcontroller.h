@@ -17,10 +17,10 @@
 
 #include "displaycontroller.h"
 
-class vibrantController: public displayController{
+class ctmController: public displayController{
 public:
-    vibrantController(RROutput output);
-    ~vibrantController();
+    ctmController(RROutput output);
+    ~ctmController();
 
 	int getSaturation();
     void setSaturation(int saturation);

@@ -1,9 +1,9 @@
-#include "vibrantcontroller.h"
+#include "ctmcontroller.h"
 
-size_t vibrantController::instance_count = 0;
-Display* vibrantController::dpy = nullptr;
+size_t ctmController::instance_count = 0;
+Display* ctmController::dpy = nullptr;
 
-vibrantController::vibrantController(RROutput output): output(output) {
+ctmController::ctmController(RROutput output): output(output) {
 	if(instance_count == 0){
 		dpy = XOpenDisplay(nullptr);
 		if(dpy == nullptr){
@@ -12,14 +12,14 @@ vibrantController::vibrantController(RROutput output): output(output) {
 	}
 }
 
-vibrantController::~vibrantController(){
+ctmController::~ctmController(){
 	instance_count--;
 	if(instance_count == 0){
 		XCloseDisplay(dpy);
 	}
 }
 
-int vibrantController::getSaturation(){
+int ctmController::getSaturation(){
     int x_status;
     double saturation = get_saturation(dpy, output, &x_status);
     int roundedSaturation = qRound(saturation * 100) - 100;
@@ -31,7 +31,7 @@ int vibrantController::getSaturation(){
     }
 }
 
-void vibrantController::setSaturation(int saturation){
+void ctmController::setSaturation(int saturation){
     int x_status;
     // convert normalized value to a value vibrant can work with
     double actualSaturation;

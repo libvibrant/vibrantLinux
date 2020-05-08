@@ -49,8 +49,11 @@ displayManager::displayManager(bool checkWindowInFocus): scanner(checkWindowInFo
 
 			//only add the display to the list of display names if we have a controller for it
 			if(isCTM()){
-                auto vib = new (std::nothrow) vibrantController(output);
-                controllers.insert(info->name, vib);
+                auto ctm = new (std::nothrow) ctmController(output);
+                if(ctm == nullptr){
+                    throw std::runtime_error("failed to allocate memory for a display controller");
+                }
+                controllers.insert(info->name, ctm);
                 displays.append(info->name);
 			}
 			else if((nvDpy = std::find_if(nvDpys.begin(), nvDpys.end(), isNvDpy)) != nvDpys.end()){

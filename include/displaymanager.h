@@ -6,7 +6,7 @@
 #include <QListWidget>
 
 #include "nvidiacontroller.h"
-#include "vibrantcontroller.h"
+#include "ctmcontroller.h"
 #include "procscanner.h"
 
 class displayManager{
