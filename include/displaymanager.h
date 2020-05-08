@@ -6,6 +6,7 @@
 #include <QListWidget>
 
 #include "nvidiacontroller.h"
+#include "ctmcontroller.h"
 #include "procscanner.h"
 
 class displayManager{

@@ -31,9 +31,11 @@ LIBS += \
 	-lxcb-ewmh \
 	-lX11 \
 	-lXrandr \
-	-lXNVCtrl
+	-lXNVCtrl \
+        -lvibrant
 
 SOURCES += \
+	src/ctmcontroller.cpp \
 	src/displaymanager.cpp \
 	src/displaytab.cpp \
 	src/entryeditor.cpp \
@@ -43,6 +45,7 @@ SOURCES += \
 	src/procscanner.cpp
 
 HEADERS += \
+	include/ctmcontroller.h \
 	include/displaycontroller.h \
 	include/displaymanager.h \
 	include/displaytab.h \

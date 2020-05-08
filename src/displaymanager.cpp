@@ -49,7 +49,12 @@ displayManager::displayManager(bool checkWindowInFocus): scanner(checkWindowInFo
 
 			//only add the display to the list of display names if we have a controller for it
 			if(isCTM()){
-				//TODO: implementation for CTM controller from vibrantlinux-amd maintainer
+                auto ctm = new (std::nothrow) ctmController(output);
+                if(ctm == nullptr){
+                    throw std::runtime_error("failed to allocate memory for a display controller");
+                }
+                controllers.insert(info->name, ctm);
+                displays.append(info->name);
 			}
 			else if((nvDpy = std::find_if(nvDpys.begin(), nvDpys.end(), isNvDpy)) != nvDpys.end()){
 				auto nv = new (std::nothrow) nvidiaController(*nvDpy);
@@ -57,9 +62,9 @@ displayManager::displayManager(bool checkWindowInFocus): scanner(checkWindowInFo
 					throw std::runtime_error("failed to allocate memory for a display controller");
 				}
 
-				controllers.insert(nvDpy->name, nv);
-				displays.append(info->name);
-			}
+                controllers.insert(nvDpy->name, nv);
+                displays.append(info->name);
+            }
 		}
 
 		XRRFreeOutputInfo(info);
