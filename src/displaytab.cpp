@@ -57,7 +57,7 @@ void displayTab::saturationChanged(int value){
 }
 
 void displayTab::makeTab(){
-	label = new (std::nothrow) QLabel("Vibrance", this);
+    label = new (std::nothrow) QLabel(QString("Vibrance for %1").arg(name), this);
 	if(!label){
 		throw std::runtime_error("failed to allocate memory for label");
 	}
