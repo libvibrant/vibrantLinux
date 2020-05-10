@@ -10,7 +10,7 @@ Program entry editor:
 
 vibrantLinux is a gui tool that serves the same purpose as vibrance gui on windows, which to modify the saturation of any given screen whenever certain programs are launched/are in focus.
 
-It currently only supports NVIDIA and GPUS that implement the Color Transformation Matrix (CTM). If you figure out how to add this support to any other GPUs please inform me so that vibrantLinux can support those GPUs.
+It currently only supports NVIDIA and GPUS that implement the Color Transformation Matrix (CTM) property. If you figure out how to add this support to any other GPUs please inform me so that vibrantLinux can support those GPUs.
 
 # Requirements
 
