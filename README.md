@@ -42,7 +42,7 @@ Alternatively, if want to use [EWMH](https://en.wikipedia.org/wiki/Extended_Wind
 
 ## Updates
 
-Head to your installation folder and run
+Head to your installation folder. In our case, it is located at `~/vibrantLinux`. Then, run:
 
 ```bash
 ./update.sh
