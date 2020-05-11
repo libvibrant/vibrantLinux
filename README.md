@@ -9,7 +9,7 @@ Program entry editor:
 
 ## Overview
 
-vibrantLinux is a GUI tool to serves the same purpose as [VibranceGUI](https://vibrancegui.com/) for Windows. saturation and vibrance in games, which to modify the saturation of any given screen whenever certain programs are launched/are in focus.
+vibrantLinux is a GUI tool to serves the same purpose as [VibranceGUI](https://vibrancegui.com/) for Windows, which to modify the saturation of any given screen whenever certain programs are launched/are in focus.
 
 It currently only supports Nvidia and other GPUs that implement the Color Transformation Matrix (CMT) property. If you find a way to add this support to any other GPUs, please inform me so that vibrantLinux can support those GPUs.
 
