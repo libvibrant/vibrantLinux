@@ -1,4 +1,4 @@
-# Vibrant Linux
+# vibrantLinux
 Main Program:
 
 ![Main program](assets/program.png)
@@ -9,7 +9,7 @@ Program entry editor:
 
 ## Overview
 
-Vibrant Linux is a GUI tool to adjust saturation and vibrance in games. It serves the same purpose as [VibranceGUI](https://vibrancegui.com/) for Windows.
+vibrantLinux is a GUI tool to adjust saturation and vibrance in games. It serves the same purpose as [VibranceGUI](https://vibrancegui.com/) for Windows.
 
 It currently only supports Nvidia as I have yet to find a way to tweak saturation/vibrance on AMD and Intel GPUs. If you find a way to adjust saturation/vibrace on AMD, Intel, or any other GPU brand, please create an issue with the method of how to adjust saturation and it will be added to the program, or even better, create a pull request.
 
