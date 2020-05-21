@@ -11,7 +11,7 @@
 
 class displayManager{
 public:
-	displayManager(bool checkWindowInFocus);
+	displayManager();
 	~displayManager();
 
 	QStringList getDisplayNames();

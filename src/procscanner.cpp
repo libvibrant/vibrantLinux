@@ -69,15 +69,54 @@ const programInfo* procScanner::getSaturation(QListWidget* watchlist){
 			return nullptr;
 		}
 
-		QString procPath = QFileInfo("/proc/"+QString::number(pid)+"/exe").canonicalFilePath();
+		xcb_ewmh_get_utf8_strings_reply_t windowTitle;
+		cookie = xcb_ewmh_get_wm_name(&xcon, activeWindow);
+		if(!xcb_ewmh_get_wm_name_reply(&xcon, cookie, &windowTitle, &e)){
+			return nullptr;
+		}
 
 		//check if the active window program is in our list
 		for(int i = 0; i < watchlist->count(); i++){
 			auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo*>();
-			if(procPath == info->path){
-				return info;
+
+			if(info->type == programInfo::MatchPath){
+				QString procPath = QFileInfo("/proc/"+QString::number(pid)+"/exe").canonicalFilePath();
+
+				if(procPath == info->matchString){
+					return info;
+				}
+			}
+			else{
+				//use this because its a lot cleaner than copy pasting the function call that frees windowTitle
+				programInfo *ret = nullptr;
+				auto title = QByteArray::fromRawData(windowTitle.strings, windowTitle.strings_len);
+				switch(info->type){
+					case programInfo::MatchTitle:
+						if(title.size() == info->matchString.size() && info->matchString == title){
+							return info;
+						}
+						break;
+					case programInfo::SubMatchTitle:
+						if(title.contains(info->matchString)){
+							ret = info;
+						}
+						break;
+					case programInfo::RegexMatchTitle:
+						QRegularExpression regex(info->matchString);
+						if(regex.match(QString(title)).hasMatch()){
+							ret = info;
+						}
+						break;
+				}
+
+				if(ret){
+					xcb_ewmh_get_utf8_strings_reply_wipe(&windowTitle);
+					return ret;
+				}
 			}
 		}
+
+		xcb_ewmh_get_utf8_strings_reply_wipe(&windowTitle);
 	}
 	else{
 		processes.resize(0);
@@ -95,8 +134,10 @@ const programInfo* procScanner::getSaturation(QListWidget* watchlist){
 		for(int i = 0; i < watchlist->count(); i++){
 			auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo*>();
 			for(auto &process: processes){
-				if(process == info->path){
-					return info;
+				if(info->type == programInfo::MatchPath){
+					if(process == info->matchString){
+						return info;
+					}
 				}
 			}
 		}

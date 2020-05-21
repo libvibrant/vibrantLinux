@@ -9,7 +9,7 @@ displayTab::displayTab(const displayTab &other) : QWidget (other.parentWidget())
 	slider->setValue(other.slider->value());
 	spinBox->setValue(other.spinBox->value());
 	name = other.name;
-	currentVibrance = other.currentVibrance;
+	saturation = other.saturation;
 }
 
 displayTab::displayTab(displayTab &&other) noexcept{
@@ -18,7 +18,7 @@ displayTab::displayTab(displayTab &&other) noexcept{
 	spinBox = other.spinBox;
 	layout = other.layout;
 	name = std::move(other.name);
-	currentVibrance = other.currentVibrance;
+	saturation = other.saturation;
 
 	other.label = nullptr;
 	other.slider = nullptr;
@@ -57,7 +57,7 @@ void displayTab::saturationChanged(int value){
 }
 
 void displayTab::makeTab(){
-    label = new (std::nothrow) QLabel(QString("Vibrance for %1").arg(name), this);
+	label = new (std::nothrow) QLabel(QString("Vibrance for %1").arg(name), this);
 	if(!label){
 		throw std::runtime_error("failed to allocate memory for label");
 	}

@@ -6,25 +6,58 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>375</width>
-    <height>114</height>
+    <width>491</width>
+    <height>152</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Edit Entry</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
+   <item row="2" column="0">
+    <widget class="QRadioButton" name="pathMatchRbt">
+     <property name="text">
+      <string>Path matching</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">matchSelectGroup</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="6" column="1">
+    <widget class="QLineEdit" name="titleMatch">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0" colspan="3">
+    <widget class="QTabWidget" name="displays"/>
+   </item>
+   <item row="3" column="1">
     <widget class="QLineEdit" name="path"/>
    </item>
-   <item row="0" column="1">
-    <widget class="QPushButton" name="pathSelect">
+   <item row="3" column="2">
+    <widget class="QPushButton" name="pathSelectBt">
      <property name="text">
       <string>Select a program</string>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="5" column="0">
+    <widget class="QRadioButton" name="titleMatchRbt">
+     <property name="text">
+      <string>Title matching</string>
+     </property>
+     <attribute name="buttonGroup">
+      <string notr="true">matchSelectGroup</string>
+     </attribute>
+    </widget>
+   </item>
+   <item row="7" column="2">
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
@@ -34,8 +67,27 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0" colspan="2">
-    <widget class="QTabWidget" name="displays"/>
+   <item row="6" column="2">
+    <widget class="QComboBox" name="titleMatchTypeCb">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <item>
+      <property name="text">
+       <string>Window title match</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Partial window title match</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Regex window title match (PCRE)</string>
+      </property>
+     </item>
+    </widget>
    </item>
   </layout>
  </widget>
@@ -74,4 +126,7 @@
    </hints>
   </connection>
  </connections>
+ <buttongroups>
+  <buttongroup name="matchSelectGroup"/>
+ </buttongroups>
 </ui>

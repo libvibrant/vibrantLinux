@@ -17,6 +17,7 @@
 #include "entryeditor.h"
 #include "displaytab.h"
 #include "displaymanager.h"
+#include <algorithm>
 
 namespace Ui {
 class mainWindow;
@@ -32,22 +33,19 @@ public:
 	QSystemTrayIcon systray;
 
 private:
-	void parseConfig();
-	//helper functions for generateFromConfig
-	bool hasMonitorSetupChanged(const QJsonArray &configDisplays, const QStringList &currentDisplays);
-	QJsonObject generateConfig(const QStringList &displayNames);
-	void generateTabs(const QStringList &displayNames);
-	void freeAllocatedTabs();
+	void setupFromConfig();
+	//helper functions for setupFromConfig
+	bool monitorSetupChanged(const QJsonArray &configDisplays);
+	QJsonObject generateConfig();
 	void writeConfig();
 
-	void addEntry(const QString &path);
-	void addEntry(const QString &path, const QHash<QString, int> &vibrance);
+	void addEntry(programInfo info);
 	void removeEntry(QListWidgetItem *item);
 
 	Ui::mainWindow *ui;
 
 	displayManager manager;
-	QString displayNames;
+	QStringList displayNames;
 	QTimer timer;
 
 	QMenu systrayMenu;

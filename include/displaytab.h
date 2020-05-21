@@ -30,7 +30,7 @@ public:
 		slider->setValue(other.slider->value());
 		spinBox->setValue(other.spinBox->value());
 		name = other.name;
-		currentVibrance = other.currentVibrance;
+		saturation = other.saturation;
 
 		return *this;
 	}
@@ -50,7 +50,7 @@ public:
 		spinBox = other.spinBox;
 		layout = other.layout;
 		name = std::move(other.name);
-		currentVibrance = other.currentVibrance;
+		saturation = other.saturation;
 
 		other.label = nullptr;
 		other.slider = nullptr;
@@ -85,9 +85,7 @@ private:
 	QSlider *slider = nullptr;
 	QSpinBox *spinBox = nullptr;
 	QString name;
-	//set it outside of range so the first call to applyVibrance always works
-	//this is the currently applied vibrance
-	int currentVibrance;
+	int saturation;
 };
 
 #endif // DISPLAYTAB_H
