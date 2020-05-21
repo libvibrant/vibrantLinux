@@ -9,6 +9,7 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	systray.setIcon(icon);
 
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
+	connect(ui->actionRunOnStartup, &QAction::triggered, this, &mainWindow::toggleRunOnStartup);
 
 	systrayMenu.addAction(ui->actionShowHideWindow);
 	systrayMenu.addAction(ui->actionExit);
@@ -16,6 +17,7 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 
 	displayNames = manager.getDisplayNames();
 	setupFromConfig();
+	loadAutostartState();
 
 	for(int i = 0; i < ui->displays->count(); i++){
 		auto dpyTab = dynamic_cast<displayTab*>(ui->displays->widget(i));
@@ -297,6 +299,19 @@ void mainWindow::writeConfig(){
 	settingsFile.close();
 }
 
+void mainWindow::loadAutostartState() {
+	ui->actionRunOnStartup->setChecked(autostart::isEnabled());
+}
+
+void mainWindow::toggleRunOnStartup() {
+	if (autostart::isEnabled()) {
+		autostart::disable();
+	} else {
+		autostart::enable();
+	}
+	loadAutostartState();
+}
+
 void mainWindow::addEntry(programInfo info){
 	QListWidgetItem *item;
 	if(info.type == programInfo::entryType::MatchPath){
@@ -393,11 +408,11 @@ void mainWindow::on_actionExit_triggered(){
 
 void mainWindow::on_actionAbout_triggered(){
 	QMessageBox::about(this, "About",
-					   QString("Vibrant Linux is a program to automatically set the color saturation "
-							   "of specific monitors depending on what program is current running.\n\n"
-							   "This program currently works with NVIDIA, and any GPU that implements "
-							   "the Color Transformation Matrix (CTM) property.\n\nVersion: %1")
-					   .arg(VIBRANT_LINUX_VERSION));
+						QString("Vibrant Linux is a program to automatically set the color saturation "
+								"of specific monitors depending on what program is current running.\n\n"
+								"This program currently works with NVIDIA, and any GPU that implements "
+								"the Color Transformation Matrix (CTM) property.\n\nVersion: %1")
+							.arg(VIBRANT_LINUX_VERSION));
 }
 
 void mainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason){

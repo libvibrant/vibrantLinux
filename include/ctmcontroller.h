@@ -19,17 +19,17 @@
 
 class ctmController: public displayController{
 public:
-    ctmController(RROutput output);
-    ~ctmController();
+	ctmController(RROutput output);
+	~ctmController();
 
 	int getSaturation();
-    void setSaturation(int saturation);
+	void setSaturation(int saturation);
 
 private:
 	//instances of this class will share the same Display * to send commands to the extension
 	static size_t instance_count;
 	static Display* dpy;
-    RROutput output;
+	RROutput output;
 };
 
 #endif // VIBRANTCONTROLLER_H
