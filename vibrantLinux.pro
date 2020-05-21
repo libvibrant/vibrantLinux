@@ -15,7 +15,8 @@ TEMPLATE = app
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
-DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_DEPRECATED_WARNINGS \
+		   VIBRANT_LINUX_VERSION=\\\"2.0.0\\\"
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -26,27 +27,34 @@ CONFIG += c++14
 
 INCLUDEPATH += "include/"
 
-!contains(DEFINES, VIBRANT_LINUX_NO_XCB){
 LIBS += \
 	-lxcb \
-	-lxcb-ewmh
-}
+	-lxcb-ewmh \
+	-lX11 \
+	-lXrandr \
+	-lXNVCtrl \
+	-lvibrant
 
 SOURCES += \
+	src/ctmcontroller.cpp \
+	src/displaymanager.cpp \
 	src/displaytab.cpp \
 	src/entryeditor.cpp \
 	src/main.cpp \
 	src/mainwindow.cpp \
-	src/procscanner.cpp \
-	src/utils.cpp
+	src/nvidiacontroller.cpp \
+	src/procscanner.cpp
 
 HEADERS += \
+	include/ctmcontroller.h \
+	include/displaycontroller.h \
+	include/displaymanager.h \
 	include/displaytab.h \
 	include/entryeditor.h \
 	include/mainwindow.h \
+	include/nvidiacontroller.h \
 	include/procscanner.h \
-	include/programinfo.h \
-	include/utils.h
+	include/programinfo.h
 
 FORMS += \
 	forms/entryeditor.ui \
@@ -58,4 +66,4 @@ else: unix:!android: target.path = /usr/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    resources.qrc
+	resources.qrc

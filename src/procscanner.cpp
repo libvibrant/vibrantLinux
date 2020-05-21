@@ -1,20 +1,20 @@
 #include "procscanner.h"
 
-procScanner::procScanner(){
-	#ifndef VIBRANT_LINUX_NO_XCB
-	connectedToX = useX = establishXCon();
-	#endif
+procScanner::procScanner(bool checkWindowFocus): checkWindowFocus(checkWindowFocus){
+	if(checkWindowFocus){
+		connectedToX = establishXCon();
+		if(!connectedToX){
+			checkWindowFocus = false;
+		}
+	}
 }
 
 procScanner::~procScanner(){
-	#ifndef VIBRANT_LINUX_NO_XCB
 	if(connectedToX){
 		xcb_disconnect(xcon.connection);
 	}
-	#endif
 }
 
-#ifndef VIBRANT_LINUX_NO_XCB
 bool procScanner::establishXCon(){
 	xcon.connection = xcb_connect(nullptr, nullptr);
 	if(xcb_connection_has_error(xcon.connection)){
@@ -32,35 +32,27 @@ bool procScanner::establishXCon(){
 	return true;
 }
 
-void procScanner::setUseX(bool use){
+void procScanner::setCheckWindowFocus(bool use){
 	if(use){
 		if(connectedToX){
-			useX = use;
+			checkWindowFocus = use;
 		}
 		else{
-			connectedToX = useX = establishXCon();
+			connectedToX = checkWindowFocus = establishXCon();
 		}
 	}
 	else{
 		xcb_disconnect(xcon.connection);
-		connectedToX = useX = use;
+		connectedToX = checkWindowFocus = use;
 	}
 }
 
-bool procScanner::isUsingX(){
-	return useX;
+bool procScanner::isCheckingWindowFocus(){
+	return checkWindowFocus;
 }
 
-bool procScanner::isConnectedToX(){
-	return connectedToX;
-}
-#endif
-
-QListWidgetItem* procScanner::getVibrance(QListWidget *&watchList){
-	QListWidgetItem *res = nullptr;
-
-	#ifndef VIBRANT_LINUX_NO_XCB
-	if(useX){
+const programInfo* procScanner::getSaturation(QListWidget* watchlist){
+	if(checkWindowFocus){
 		//get the current active window
 		xcb_get_property_cookie_t cookie;
 		xcb_window_t activeWindow;
@@ -77,22 +69,56 @@ QListWidgetItem* procScanner::getVibrance(QListWidget *&watchList){
 			return nullptr;
 		}
 
-		QString procPath = QFileInfo("/proc/"+QString::number(pid)+"/exe").canonicalFilePath();
+		xcb_ewmh_get_utf8_strings_reply_t windowTitle;
+		cookie = xcb_ewmh_get_wm_name(&xcon, activeWindow);
+		if(!xcb_ewmh_get_wm_name_reply(&xcon, cookie, &windowTitle, &e)){
+			return nullptr;
+		}
 
 		//check if the active window program is in our list
-		for(int i = 0; i < watchList->count(); i++){
-			QListWidgetItem *tmp = watchList->item(i);
-			QString itemPath = getItemPath(tmp);
-			if(procPath == getItemPath(tmp)){
-				res = tmp;
-				break;
+		for(int i = 0; i < watchlist->count(); i++){
+			auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo*>();
+
+			if(info->type == programInfo::MatchPath){
+				QString procPath = QFileInfo("/proc/"+QString::number(pid)+"/exe").canonicalFilePath();
+
+				if(procPath == info->matchString){
+					return info;
+				}
+			}
+			else{
+				//use this because its a lot cleaner than copy pasting the function call that frees windowTitle
+				programInfo *ret = nullptr;
+				auto title = QByteArray::fromRawData(windowTitle.strings, windowTitle.strings_len);
+				switch(info->type){
+					case programInfo::MatchTitle:
+						if(title.size() == info->matchString.size() && info->matchString == title){
+							return info;
+						}
+						break;
+					case programInfo::SubMatchTitle:
+						if(title.contains(info->matchString)){
+							ret = info;
+						}
+						break;
+					case programInfo::RegexMatchTitle:
+						QRegularExpression regex(info->matchString);
+						if(regex.match(QString(title)).hasMatch()){
+							ret = info;
+						}
+						break;
+				}
+
+				if(ret){
+					xcb_ewmh_get_utf8_strings_reply_wipe(&windowTitle);
+					return ret;
+				}
 			}
 		}
 
-		return res;
+		xcb_ewmh_get_utf8_strings_reply_wipe(&windowTitle);
 	}
 	else{
-	#endif
 		processes.resize(0);
 
 		QDir procDir("/proc");
@@ -105,18 +131,17 @@ QListWidgetItem* procScanner::getVibrance(QListWidget *&watchList){
 			processes.emplace_back(procInfo.canonicalFilePath());
 		}
 
-		//traverse in reverse. First items get priority in vibrance control
-		for(int i = watchList->count()-1; i >= 0; i--){
-			QListWidgetItem *item = watchList->item(i);
+		for(int i = 0; i < watchlist->count(); i++){
+			auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo*>();
 			for(auto &process: processes){
-				if(process == getItemPath(item)){
-					res = watchList->item(i);
+				if(info->type == programInfo::MatchPath){
+					if(process == info->matchString){
+						return info;
+					}
 				}
 			}
 		}
-	#ifndef VIBRANT_LINUX_NO_XCB
 	}
-	#endif
 
-	return res;
+	return nullptr;
 }

@@ -1,5 +1,4 @@
-# Vibrant Linux
-
+# vibrantLinux
 Main Program:
 
 ![Main program](assets/program.png)
@@ -8,40 +7,37 @@ Program entry editor:
 
 ![Program vibrance editor](assets/entryeditor.png)
 
-vibrant linux is a gui tool that serves the same purpose as vibrance gui on windows.
+## Overview
 
-It currently only supports nvidia as I have yet to find a way to tweak saturation/vibrance on amd, and intel gpus. If you find a way to adjust saturation/vibrace on amd, intel, or any other gpu brand that I never heard of please create an issue with the method of how to adjust saturation and it will be added to the program.
+vibrantLinux is a GUI tool to serves the same purpose as [VibranceGUI](https://vibrancegui.com/) for Windows, which to modify the saturation of any given screen whenever certain programs are launched/are in focus.
 
-Trust me, I'm more digusted with myself than anyone could be for writing software that only supports nvidia.
+It currently only supports Nvidia and other GPUs that implement the Color Transformation Matrix (CMT) property. If you find a way to add this support to any other GPUs, please inform me so that vibrantLinux can support those GPUs.
 
-# Requirements
+## Requirements
 
-The only things needed to run this program is:
+The required packages are:
 
-```
-git
-nvidia-settings
-qt
-libxcb (optional)
-libxcb-ewmh (optional)
-```
+- git
+- qt
+- libXNVCtrl
+- libxcb
+- libxcb-ewmh
+- libX11
+- libXrandr
+- libvibrant
 
-# Installation
+## Installation
 
-```
-git clone https://gitlab.com/zee220/vibrantlinux
-cd vibrantlinux
+```bash
+git clone https://gitlab.com/zee220/vibrantlinux ~/vibrantlinux
+cd ~/vibrantlinux
 ./update.sh
-#or alternatively if you know you don't want to use ewmh to get the active window
-./update.sh --noxcb
 ```
 
-# Updates
+## Updates
 
-Head to your installation folder and run
-```
+Head to your installation folder. In our case, it is located at `~/vibrantLinux`. Then, run:
+
+```bash
 ./update.sh
-#or for no xcb
-./update.sh --noxcb
 ```
-

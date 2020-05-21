@@ -15,10 +15,9 @@
 #include <QMenu>
 
 #include "entryeditor.h"
-#include "procscanner.h"
 #include "displaytab.h"
-#include "programinfo.h"
-#include "utils.h"
+#include "displaymanager.h"
+#include <algorithm>
 
 namespace Ui {
 class mainWindow;
@@ -34,26 +33,26 @@ public:
 	QSystemTrayIcon systray;
 
 private:
-	void parseConfig();
-	//helper functions for generateFromConfig
-	bool hasMonitorSetupChanged(const QJsonArray &configDisplays, const QStringList &currentDisplays);
-	QJsonObject generateConfig(const QStringList &displayNames);
-	void generateTabs(const QStringList &displayNames);
-	void freeAllocatedTabs();
+	void setupFromConfig();
+	//helper functions for setupFromConfig
+	bool monitorSetupChanged(const QJsonArray &configDisplays);
+	QJsonObject generateConfig();
 	void writeConfig();
 
-	void addEntry(const QString &path);
-	void addEntry(const QString &path, const QHash<QString, int> &vibrance);
+	void addEntry(programInfo info);
 	void removeEntry(QListWidgetItem *item);
 
 	Ui::mainWindow *ui;
-	procScanner programScanner;
+
+	displayManager manager;
+	QStringList displayNames;
 	QTimer timer;
 
 	QMenu systrayMenu;
 
 private slots:
-	void updateVibrance();
+	void updateSaturation();
+	void defaultSaturationChanged(const QString &name, int value);
 
 	/*we have to keep the function in case VIBRANT_LINUX_NO_XCB is defined
 	otherwise moc_mainwindow will contain an undefined refernece to it*/
@@ -65,8 +64,6 @@ private slots:
 	void on_actionShowHideWindow_triggered();
 	void on_actionExit_triggered();
 	void on_actionAbout_triggered();
-
-	void on_donate_clicked();
 
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
 };
