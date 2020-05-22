@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>assets/icon.png</file>
-        <file>assets/vibrantLinux.autostart.desktop</file>
+        <file>assets/autostart.desktop</file>
     </qresource>
 </RCC>

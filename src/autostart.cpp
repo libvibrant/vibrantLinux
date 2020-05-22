@@ -5,7 +5,7 @@
 
 static QDir path(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.config/autostart");
 static const QString filename = "vibrantLinux.desktop";
-static const QString internalFilename(":/assets/vibrantLinux.autostart.desktop");
+static const QString internalFilename(":/assets/autostart.desktop");
 
 bool autostart::isEnabled() {
 	// If file or autostart path doesn't exist
