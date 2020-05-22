@@ -1,6 +1,7 @@
 #ifndef AUTOSTART_H
 #define AUTOSTART_H
 
+#include <QDir>
 
 class autostart
 {
