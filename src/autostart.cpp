@@ -1,9 +1,8 @@
 #include "autostart.h"
 
 #include <QDir>
-#include <QStandardPaths>
 
-static QDir path(QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + "/.config/autostart");
+static QDir path(QDir::homePath() + "/.config/autostart");
 static const QString filename = "vibrantLinux.desktop";
 static const QString internalFilename(":/assets/autostart.desktop");
 
