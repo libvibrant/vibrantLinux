@@ -101,7 +101,10 @@ void mainWindow::setupFromConfig(){
 					auto configDpy = configDpyRef.toObject();
 					if(tab->getName() == configDpy["name"].toString()){
 						sameDisplays.push_back(tab);
-						tab->setSaturation(configDpy["vibrance"].toInt());
+
+						int saturation = configDpy["vibrance"].toInt();
+						tab->setSaturation(saturation);
+						manager.setDefaultDisplaySaturation(tab->getName(), saturation);
 					}
 				}
 			}
@@ -160,7 +163,9 @@ void mainWindow::setupFromConfig(){
 					auto configDpy = configDpyRef.toObject();
 					auto name = configDpy["name"].toString();
 					if(tab->getName() == name){
-						tab->setSaturation(configDpy["vibrance"].toInt());
+						int saturation = configDpy["vibrance"].toInt();
+						tab->setSaturation(saturation);
+						manager.setDefaultDisplaySaturation(name, saturation);
 					}
 				}
 			}
