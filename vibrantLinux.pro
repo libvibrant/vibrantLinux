@@ -36,6 +36,7 @@ LIBS += \
 	-lvibrant
 
 SOURCES += \
+	src/autostart.cpp \
 	src/ctmcontroller.cpp \
 	src/displaymanager.cpp \
 	src/displaytab.cpp \
@@ -46,6 +47,7 @@ SOURCES += \
 	src/procscanner.cpp
 
 HEADERS += \
+	include/autostart.h \
 	include/ctmcontroller.h \
 	include/displaycontroller.h \
 	include/displaymanager.h \

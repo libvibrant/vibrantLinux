@@ -17,6 +17,7 @@
 #include "entryeditor.h"
 #include "displaytab.h"
 #include "displaymanager.h"
+#include "autostart.h"
 #include <algorithm>
 
 namespace Ui {
@@ -38,6 +39,7 @@ private:
 	bool monitorSetupChanged(const QJsonArray &configDisplays);
 	QJsonObject generateConfig();
 	void writeConfig();
+	void loadAutostartState();
 
 	void addEntry(programInfo info);
 	void removeEntry(QListWidgetItem *item);
@@ -49,7 +51,6 @@ private:
 	QTimer timer;
 
 	QMenu systrayMenu;
-
 private slots:
 	void updateSaturation();
 	void defaultSaturationChanged(const QString &name, int value);
@@ -66,6 +67,7 @@ private slots:
 	void on_actionAbout_triggered();
 
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
+	void toggleRunOnStartup();
 };
 
 #endif // MAINWINDOW_H
