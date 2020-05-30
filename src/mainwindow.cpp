@@ -1,6 +1,8 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#define CURRENT_CONFIG_VER 1
+
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
@@ -96,9 +98,11 @@ void mainWindow::setupFromConfig(){
 		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
 
 		int configVersion;
-		bool newConfig = true;
 		//old configs didnt have a version
-		if(settings["configVersion"].toInt() == QJsonValue::Undefined){
+		if(settings.contains("configVersion")){
+			configVersion = settings["configVersion"].toInt();
+		}
+		else{
 			configVersion = 1;
 			newConfig = false;
 		}
@@ -115,6 +119,9 @@ void mainWindow::setupFromConfig(){
 						sameDisplays.push_back(tab);
 
 						int saturation = configDpy["vibrance"].toInt();
+						if(!newConfig){
+							saturation = oldVibranceToNew(saturation);
+						}
 						tab->setSaturation(saturation);
 						manager.setDefaultDisplaySaturation(tab->getName(), saturation);
 					}
@@ -135,7 +142,10 @@ void mainWindow::setupFromConfig(){
 
 					if(tab != sameDisplays.end()){
 						//old config stored values in the range of [0, 400]
-						int val = newConfig? vibrance["vibrance"].toInt() : oldVibranceToNew(vibrance["vibrance"].toInt());
+						int val = vibrance["vibrance"].toInt();
+						if(!newConfig){
+							val = oldVibranceToNew(val);
+						}
 						vibranceVals.insert(name, val);
 					}
 					else{
@@ -167,6 +177,9 @@ void mainWindow::setupFromConfig(){
 					auto name = configDpy["name"].toString();
 					if(tab->getName() == name){
 						int saturation = configDpy["vibrance"].toInt();
+						if(!newConfig){
+							saturation = oldVibranceToNew(saturation);
+						}
 						tab->setSaturation(saturation);
 						manager.setDefaultDisplaySaturation(name, saturation);
 					}
@@ -181,7 +194,10 @@ void mainWindow::setupFromConfig(){
 				for(auto vibranceRef: program["vibrance"].toArray()){
 					QJsonObject vibrance = vibranceRef.toObject();
 					//old config stored values in the range of [-100, 100]
-					int val = newConfig? vibrance["vibrance"].toInt() : oldVibranceToNew(vibrance["vibrance"].toInt());
+					int val = vibrance["vibrance"].toInt();
+					if(!newConfig){
+						val = oldVibranceToNew(val);
+					}
 
 					vibranceVals.insert(vibrance["name"].toString(), val);
 				}
