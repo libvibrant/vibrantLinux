@@ -97,7 +97,9 @@ void mainWindow::setupFromConfig(){
 		settingsFile.open(QFile::ReadOnly);
 		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
 
+		//this is unused for now, but we'll use it later for whenever the config format changes
 		int configVersion;
+		Q_UNUSED(configVersion);
 		//old configs didnt have a version
 		if(settings.contains("configVersion")){
 			configVersion = settings["configVersion"].toInt();
@@ -245,6 +247,8 @@ bool mainWindow::monitorSetupChanged(const QJsonArray &configDisplays){
 
 QJsonObject mainWindow::generateConfig(){
 	QJsonObject res;
+
+	res.insert("configVersion", CURRENT_CONFIG_VER);
 
 	//store the displays as an array
 	QJsonArray tmpArr;
