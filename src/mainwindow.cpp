@@ -76,13 +76,16 @@ void mainWindow::setupFromConfig(){
 	}
 
 	auto oldVibranceToNew = [](int val){
-		if(val >= 9){
-			return (val*100)/1023;
-		}
-		else{
-			return (val*100)/1024;
-		}
-	};
+			if(val == 0){
+				return 100;
+			}
+			else if(val > 0){
+				return val*4;
+			}
+			else{
+				return val+100;
+			}
+		};
 
 	//check if config file exists, and if it does read it. Otherwise generate one
 	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
@@ -91,6 +94,15 @@ void mainWindow::setupFromConfig(){
 	if(QFile::exists(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal")){
 		settingsFile.open(QFile::ReadOnly);
 		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
+
+		int configVersion;
+		bool newConfig = true;
+		//old configs didnt have a version
+		if(settings["configVersion"].toInt() == QJsonValue::Undefined){
+			configVersion = 1;
+			newConfig = false;
+		}
+
 		auto configDisplaysArr = settings["displays"].toArray();
 
 		if(monitorSetupChanged(configDisplaysArr)){
@@ -112,16 +124,7 @@ void mainWindow::setupFromConfig(){
 			for(auto programRef: settings["programs"].toArray()){
 				QJsonObject program = programRef.toObject();
 				QHash<QString, int> vibranceVals;
-				programInfo::entryType type;
-
-				//old config where we only had path matching
-				if(program["type"] == QJsonValue::Undefined){
-					type = programInfo::entryType::MatchPath;
-					newConfig = false;
-				}
-				else{
-					type = programInfo::stringToEntryType(program["type"].toString());
-				}
+				auto type = programInfo::stringToEntryType(program["type"].toString());;
 
 				for(auto vibranceRef: program["vibrance"].toArray()){
 					QJsonObject vibrance = vibranceRef.toObject();
@@ -131,7 +134,7 @@ void mainWindow::setupFromConfig(){
 					auto tab = std::find_if(sameDisplays.begin(), sameDisplays.end(), findTabFn);
 
 					if(tab != sameDisplays.end()){
-						//old config stored values in the range of [-1024, 1023]
+						//old config stored values in the range of [0, 400]
 						int val = newConfig? vibrance["vibrance"].toInt() : oldVibranceToNew(vibrance["vibrance"].toInt());
 						vibranceVals.insert(name, val);
 					}
@@ -173,18 +176,11 @@ void mainWindow::setupFromConfig(){
 			for(auto programRef: settings["programs"].toArray()){
 				QJsonObject program = programRef.toObject();
 				QHash<QString, int> vibranceVals;
-				programInfo::entryType type;
-
-				if(program["type"] == QJsonValue::Null){
-					type = programInfo::entryType::MatchPath;
-					newConfig = false;
-				}
-				else{
-					type = programInfo::stringToEntryType(program["type"].toString());
-				}
+				auto type = programInfo::stringToEntryType(program["type"].toString());;
 
 				for(auto vibranceRef: program["vibrance"].toArray()){
 					QJsonObject vibrance = vibranceRef.toObject();
+					//old config stored values in the range of [-100, 100]
 					int val = newConfig? vibrance["vibrance"].toInt() : oldVibranceToNew(vibrance["vibrance"].toInt());
 
 					vibranceVals.insert(vibrance["name"].toString(), val);

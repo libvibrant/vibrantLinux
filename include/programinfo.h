@@ -62,6 +62,8 @@ public:
 				return "SubMatchTitle";
 			case RegexMatchTitle:
 				return "RegexMatchTitle";
+			default:
+				throw std::runtime_error("how did you even manage to do this? this was just here to stop gcc from complaining");
 		}
 	}
 

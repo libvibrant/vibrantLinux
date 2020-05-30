@@ -1,77 +1,27 @@
 #include "displaymanager.h"
 
 displayManager::displayManager(): scanner(true){
-	Display* dpy = XOpenDisplay(nullptr);
-	if(dpy == nullptr){
-		throw std::runtime_error("Failed to open connection to default X server");
+	auto err = vibrant_instance_new(&instance, nullptr);
+	switch(err){
+		case vibrant_NoError:
+			break;
+		case vibrant_ConnectToX:
+			throw std::runtime_error("failed to connect to default X server");
+		case vibrant_NoMem:
+			throw std::runtime_error("failed to allocate memory for vibrant instance");
 	}
 
-	int nvScreen;
-	std::vector<nvidiaDisplay> nvDpys;
-
-	//check if the extension exists on the current X server, and if we can find the nvidia screen
-	if(nvidiaController::existsOnSystem(dpy) && (nvScreen = nvidiaController::getNvScreen(dpy)) != -1){
-		nvDpys = nvidiaController::getDisplays(dpy, nvScreen);
+	vibrant_instance_get_controllers(instance, &controllers_arr, &controllers_size);
+	if(controllers_size == 0){
+		throw std::runtime_error("this system has no supported displays");
 	}
 
-	Window root = DefaultRootWindow(dpy);
-	XRRScreenResources* resources = XRRGetScreenResources(dpy, root);
+	for(size_t i = 0; i < controllers_size; i++){
+		auto name = controllers_arr[i].info->name;
 
-	displays.reserve(resources->noutput);
-
-	//get the list of displays
-	for(int i = 0; i < resources->noutput; i++){
-		RROutput output = resources->outputs[i];
-		XRROutputInfo* info = XRRGetOutputInfo(dpy, resources, output);
-
-		if(info->connection != RR_Disconnected){
-			auto isNvDpy = [info](nvidiaDisplay &dpy) -> bool{
-				return dpy.name == info->name;
-			};
-			auto isCTM = [dpy, output](){
-				Atom prop_atom;
-
-				// Find the X Atom associated with the property name
-				prop_atom = XInternAtom(dpy, "CTM", 1);
-				if (!prop_atom){
-					return False;
-				}
-
-				// Make sure the property exists
-				if (!XRRQueryOutputProperty(dpy, output, prop_atom)){
-					return False;
-				}
-
-				return True;
-			};
-
-			std::vector<nvidiaDisplay>::iterator nvDpy;
-
-			//only add the display to the list of display names if we have a controller for it
-			if(isCTM()){
-				auto ctm = new (std::nothrow) ctmController(output);
-				if(ctm == nullptr){
-					throw std::runtime_error("failed to allocate memory for a display controller");
-				}
-				controllers.insert(info->name, ctm);
-				displays.append(info->name);
-			}
-			else if((nvDpy = std::find_if(nvDpys.begin(), nvDpys.end(), isNvDpy)) != nvDpys.end()){
-				auto nv = new (std::nothrow) nvidiaController(*nvDpy);
-				if(nv == nullptr){
-					throw std::runtime_error("failed to allocate memory for a display controller");
-				}
-
-				controllers.insert(nvDpy->name, nv);
-				displays.append(info->name);
-			}
-		}
-
-		XRRFreeOutputInfo(info);
+		displays.append(name);
+		controllers.insert(name, (controller){controllers_arr+i, 100});
 	}
-
-	XRRFreeScreenResources(resources);
-	XCloseDisplay(dpy);
 }
 
 displayManager::~displayManager(){
@@ -82,19 +32,19 @@ QStringList displayManager::getDisplayNames(){
 }
 
 int displayManager::getDisplaySaturation(const QString& name){
-	return controllers[name]->getSaturation();
+	return vibrant_controller_get_saturation(controllers[name].v_controller);
 }
 
 void displayManager::updateSaturation(QListWidget* watchlist){
 	auto info = scanner.getSaturation(watchlist);
 	if(info != nullptr){
 		for(auto it = info->saturationVals.begin(); it != info->saturationVals.end(); it++){
-			controllers[it.key()]->setSaturation(it.value());
+			vibrant_controller_set_saturation(controllers[it.key()].v_controller, (double)it.value()/100);
 		}
 	}
 	else{
 		for(auto controller: controllers){
-			controller->setSaturation(controller->defaultSaturation);
+			vibrant_controller_set_saturation(controller.v_controller, (double)controller.defaultSaturation/100);
 		}
 	}
 }
@@ -108,5 +58,5 @@ bool displayManager::isCheckingWindowFocus(){
 }
 
 void displayManager::setDefaultDisplaySaturation(const QString& name, int value){
-	controllers[name]->defaultSaturation = value;
+	controllers[name].defaultSaturation = value;
 }

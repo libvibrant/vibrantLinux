@@ -5,8 +5,20 @@
 #include <QHash>
 #include <QListWidget>
 
-#include "nvidiacontroller.h"
-#include "ctmcontroller.h"
+#include <vibrant/vibrant.h>
+
+#undef Bool
+#undef CursorShape
+#undef Expose
+#undef KeyPress
+#undef KeyRelease
+#undef FocusIn
+#undef FocusOut
+#undef FontChange
+#undef None
+#undef Status
+#undef Unsorted
+
 #include "procscanner.h"
 
 class displayManager{
@@ -26,10 +38,18 @@ public:
 	void setDefaultDisplaySaturation(const QString& name, int value);
 
 private:
+	struct controller{
+		vibrant_controller *v_controller;
+		int defaultSaturation;
+	};
+
+	vibrant_instance *instance;
+	vibrant_controller *controllers_arr;
+	size_t controllers_size;
 	procScanner scanner;
 
 	QStringList displays;
-	QHash<QString, displayController*> controllers;
+	QHash<QString, controller> controllers;
 };
 
 #endif // DISPLAYMANAGER_H

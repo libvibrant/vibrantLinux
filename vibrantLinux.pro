@@ -37,24 +37,19 @@ LIBS += \
 
 SOURCES += \
 	src/autostart.cpp \
-	src/ctmcontroller.cpp \
 	src/displaymanager.cpp \
 	src/displaytab.cpp \
 	src/entryeditor.cpp \
 	src/main.cpp \
 	src/mainwindow.cpp \
-	src/nvidiacontroller.cpp \
 	src/procscanner.cpp
 
 HEADERS += \
 	include/autostart.h \
-	include/ctmcontroller.h \
-	include/displaycontroller.h \
 	include/displaymanager.h \
 	include/displaytab.h \
 	include/entryeditor.h \
 	include/mainwindow.h \
-	include/nvidiacontroller.h \
 	include/procscanner.h \
 	include/programinfo.h
 
