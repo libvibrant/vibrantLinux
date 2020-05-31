@@ -272,6 +272,8 @@ QJsonObject mainWindow::generateConfig(){
 
 void mainWindow::writeConfig(){
 	QJsonObject obj;
+	obj.insert("configVersion", CURRENT_CONFIG_VER);
+
 	//use to temporarily store monitor list while we add to it
 	QJsonArray tmpArr;
 	for(int i = 0; i < ui->displays->count(); i++){
