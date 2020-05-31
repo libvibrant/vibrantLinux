@@ -19,11 +19,8 @@ The required packages are:
 
 - git
 - qt
-- libXNVCtrl
 - libxcb
 - libxcb-ewmh
-- libX11
-- libXrandr
 - libvibrant
 
 ## Installation
