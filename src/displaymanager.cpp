@@ -32,7 +32,7 @@ QStringList displayManager::getDisplayNames(){
 }
 
 int displayManager::getDisplaySaturation(const QString& name){
-	return vibrant_controller_get_saturation(controllers[name].v_controller);
+	return vibrant_controller_get_saturation(controllers[name].v_controller)*100;
 }
 
 void displayManager::updateSaturation(QListWidget* watchlist){
