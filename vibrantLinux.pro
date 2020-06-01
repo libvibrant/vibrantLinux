@@ -62,5 +62,23 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /usr/bin
 !isEmpty(target.path): INSTALLS += target
 
+
+desktopconfig.input = assets/application.desktop.in
+desktopconfig.output = application.desktop
+autostartconfig.input = assets/autostart.desktop.in
+autostartconfig.output = autostart.desktop
+
+QMAKE_SUBSTITUTES += \
+	desktopconfig \
+	autostartconfig
+
+desktop.path = /usr/share/applications
+desktop.files += $${desktopconfig.output}
+
+icons.path = /usr/share/icons
+icons.files += assets/icon.png
+
+INSTALLS += desktop icons
+
 RESOURCES += \
 	resources.qrc
