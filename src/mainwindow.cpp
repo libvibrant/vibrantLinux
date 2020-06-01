@@ -6,7 +6,7 @@
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
-	QIcon icon = QIcon::fromTheme("vibrantLinux", QIcon(":/assets/icon.png"));
+	QIcon icon = QIcon::fromTheme("vibrantLinux", QIcon(":/assets/vibrantLinux.png"));
 	setWindowIcon(icon);
 	systray.setIcon(icon);
 

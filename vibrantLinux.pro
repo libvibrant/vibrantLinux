@@ -76,7 +76,7 @@ desktop.path = /usr/share/applications
 desktop.files += $${desktopconfig.output}
 
 icons.path = /usr/share/pixmaps
-icons.files += assets/icon.png
+icons.files += assets/vibrantLinux.png
 
 INSTALLS += desktop icons
 
