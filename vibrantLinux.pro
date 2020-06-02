@@ -75,10 +75,11 @@ QMAKE_SUBSTITUTES += \
 desktop.path = /usr/share/applications
 desktop.files += $${desktopconfig.output}
 
-icons.path = /usr/share/icons
-icons.files += assets/icon.png
+icons.path = /usr/share/pixmaps
+icons.files += assets/vibrantLinux.png
 
 INSTALLS += desktop icons
 
 RESOURCES += \
 	resources.qrc
+
