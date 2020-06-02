@@ -68,6 +68,7 @@ void displayTab::makeTab(){
 		throw std::runtime_error("failed to allocate memory for slider");
 	}
 	slider->setRange(0, 400);
+	slider->setValue(100);
 
 	spinBox = new (std::nothrow) QSpinBox(this);
 	if(!spinBox){
@@ -76,6 +77,7 @@ void displayTab::makeTab(){
 		throw std::runtime_error("failed to allocate memory for spinbox");
 	}
 	spinBox->setRange(0, 400);
+	spinBox->setValue(100);
 
 	layout = new (std::nothrow) QGridLayout();
 	if(!layout){
