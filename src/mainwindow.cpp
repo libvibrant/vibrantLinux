@@ -77,18 +77,6 @@ void mainWindow::setupFromConfig(){
 		tabs.push_back(dpyTab);
 	}
 
-	auto oldVibranceToNew = [](int val){
-			if(val == 0){
-				return 100;
-			}
-			else if(val > 0){
-				return val*4;
-			}
-			else{
-				return val+100;
-			}
-		};
-
 	//check if config file exists, and if it does read it. Otherwise generate one
 	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
 	bool newConfig = true;
@@ -105,8 +93,12 @@ void mainWindow::setupFromConfig(){
 			configVersion = settings["configVersion"].toInt();
 		}
 		else{
-			configVersion = 1;
+			//this is useless for now, but will be used later on when config versions are updated
 			newConfig = false;
+			auto err = "Unrecognized config version, please delete "
+							  "~/.config/vibrantLinux/vibrantLinux.internal and try again";
+			QMessageBox::critical(this, "Unrecognized config version", err);
+			throw std::runtime_error(err);
 		}
 
 		auto configDisplaysArr = settings["displays"].toArray();
@@ -121,9 +113,6 @@ void mainWindow::setupFromConfig(){
 						sameDisplays.push_back(tab);
 
 						int saturation = configDpy["vibrance"].toInt();
-						if(!newConfig){
-							saturation = oldVibranceToNew(saturation);
-						}
 						tab->setSaturation(saturation);
 						manager.setDefaultDisplaySaturation(tab->getName(), saturation);
 					}
@@ -145,9 +134,6 @@ void mainWindow::setupFromConfig(){
 					if(tab != sameDisplays.end()){
 						//old config stored values in the range of [0, 400]
 						int val = vibrance["vibrance"].toInt();
-						if(!newConfig){
-							val = oldVibranceToNew(val);
-						}
 						vibranceVals.insert(name, val);
 					}
 					else{
@@ -164,12 +150,7 @@ void mainWindow::setupFromConfig(){
 					}
 				}
 
-				if(newConfig){
-					addEntry(programInfo(type, program["matchString"].toString(), vibranceVals));
-				}
-				else{
-					addEntry(programInfo(type, program["path"].toString(), vibranceVals));
-				}
+				addEntry(programInfo(type, program["matchString"].toString(), vibranceVals));
 			}
 		}
 		else{
@@ -179,9 +160,6 @@ void mainWindow::setupFromConfig(){
 					auto name = configDpy["name"].toString();
 					if(tab->getName() == name){
 						int saturation = configDpy["vibrance"].toInt();
-						if(!newConfig){
-							saturation = oldVibranceToNew(saturation);
-						}
 						tab->setSaturation(saturation);
 						manager.setDefaultDisplaySaturation(name, saturation);
 					}
@@ -197,19 +175,11 @@ void mainWindow::setupFromConfig(){
 					QJsonObject vibrance = vibranceRef.toObject();
 					//old config stored values in the range of [-100, 100]
 					int val = vibrance["vibrance"].toInt();
-					if(!newConfig){
-						val = oldVibranceToNew(val);
-					}
 
 					vibranceVals.insert(vibrance["name"].toString(), val);
 				}
 
-				if(newConfig){
-					addEntry(programInfo(type, program["matchString"].toString(), vibranceVals));
-				}
-				else{
-					addEntry(programInfo(type, program["path"].toString(), vibranceVals));
-				}
+				addEntry(programInfo(type, program["matchString"].toString(), vibranceVals));
 			}
 		}
 	}
@@ -225,9 +195,6 @@ void mainWindow::setupFromConfig(){
 
 	for(auto tab: tabs){
 		ui->displays->addTab(tab, tab->getName());
-	}
-	if(!newConfig){
-		writeConfig();
 	}
 }
 
