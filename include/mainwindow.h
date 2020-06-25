@@ -2,13 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QFileDialog>
-#include <QDir>
-#include <QJsonDocument>
 #include <QJsonObject>
-#include <QJsonArray>
-#include <QFile>
-#include <QDesktopServices>
 #include <QTimer>
 #include <QSystemTrayIcon>
 #include <QMessageBox>
@@ -18,7 +12,6 @@
 #include "displaytab.h"
 #include "displaymanager.h"
 #include "autostart.h"
-#include <algorithm>
 
 namespace Ui {
 class mainWindow;
@@ -39,7 +32,6 @@ private:
 	bool monitorSetupChanged(const QJsonArray &configDisplays);
 	QJsonObject generateConfig();
 	void writeConfig();
-	void loadAutostartState();
 
 	void addEntry(programInfo info);
 	void removeEntry(QListWidgetItem *item);
@@ -65,9 +57,9 @@ private slots:
 	void on_actionShowHideWindow_triggered();
 	void on_actionExit_triggered();
 	void on_actionAbout_triggered();
+	void on_actionRunOnStartup_triggered(bool checked);
 
 	void iconActivated(QSystemTrayIcon::ActivationReason reason);
-	void toggleRunOnStartup();
 };
 
 #endif // MAINWINDOW_H

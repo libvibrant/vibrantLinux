@@ -1,6 +1,15 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QFile>
+#include <QDesktopServices>
+#include <QFileDialog>
+#include <QDir>
+#include <QJsonDocument>
+#include <QJsonArray>
+
+#include <algorithm>
+
 #define CURRENT_CONFIG_VER 1
 
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
@@ -11,7 +20,6 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	systray.setIcon(icon);
 
 	connect(&systray, &QSystemTrayIcon::activated, this, &mainWindow::iconActivated);
-	connect(ui->actionRunOnStartup, &QAction::triggered, this, &mainWindow::toggleRunOnStartup);
 
 	systrayMenu.addAction(ui->actionShowHideWindow);
 	systrayMenu.addAction(ui->actionExit);
@@ -19,7 +27,7 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 
 	displayNames = manager.getDisplayNames();
 	setupFromConfig();
-	loadAutostartState();
+	ui->actionRunOnStartup->setChecked(autostart::isEnabled());
 
 	for(int i = 0; i < ui->displays->count(); i++){
 		auto dpyTab = dynamic_cast<displayTab*>(ui->displays->widget(i));
@@ -80,6 +88,7 @@ void mainWindow::setupFromConfig(){
 	//check if config file exists, and if it does read it. Otherwise generate one
 	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
 	bool newConfig = true;
+	Q_UNUSED(newConfig);
 
 	if(QFile::exists(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal")){
 		settingsFile.open(QFile::ReadOnly);
@@ -289,17 +298,21 @@ void mainWindow::writeConfig(){
 	settingsFile.close();
 }
 
-void mainWindow::loadAutostartState() {
-	ui->actionRunOnStartup->setChecked(autostart::isEnabled());
-}
-
-void mainWindow::toggleRunOnStartup() {
-	if (autostart::isEnabled()) {
-		autostart::disable();
-	} else {
-		autostart::enable();
+void mainWindow::on_actionRunOnStartup_triggered(bool checked){
+	if(checked){
+		if(!autostart::enable()){
+			ui->actionRunOnStartup->setChecked(false);
+			QMessageBox::warning(this, "Failed to create file",
+								 "Failed to create autostart file");
+		}
 	}
-	loadAutostartState();
+	else{
+		if(!autostart::disable()){
+			ui->actionRunOnStartup->setChecked(true);
+			QMessageBox::warning(this, "Failed to remove file",
+								 "Failed to remove autostart file");
+		}
+	}
 }
 
 void mainWindow::addEntry(programInfo info){
