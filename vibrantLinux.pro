@@ -65,12 +65,9 @@ else: unix:!android: target.path = /usr/bin
 
 desktopconfig.input = assets/application.desktop.in
 desktopconfig.output = application.desktop
-autostartconfig.input = assets/autostart.desktop.in
-autostartconfig.output = autostart.desktop
 
 QMAKE_SUBSTITUTES += \
-	desktopconfig \
-	autostartconfig
+	desktopconfig
 
 desktop.path = /usr/share/applications
 desktop.files += $${desktopconfig.output}
