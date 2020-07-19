@@ -1,20 +1,16 @@
 #!/bin/sh
 
-usexcb=true
-
-for arg in "$@"; do
-	if [ $arg = "--noxcb" ]; then
-		usexcb=false
-	fi
-done
 
 git reset --hard
 git pull
 
-if $usexcb; then
+if command -v qmake; then
 	qmake
+else if command -v qmake-qt5; then
+	qmake-qt5
 else
-	qmake "DEFINES+=VIBRANT_LINUX_NO_XCB"
+	echo "couldn't find a qmake command"
+	exit 1
 fi
 
 make
