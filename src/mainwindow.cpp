@@ -10,7 +10,7 @@
 
 #include <algorithm>
 
-#define CURRENT_CONFIG_VER 1
+const int CURRENT_CONFIG_VER = 2;
 
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
@@ -35,12 +35,6 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 	}
 
 	systray.show();
-
-	//try to establish an X connection, if we can't then we don't check for focus
-	if(!manager.isCheckingWindowFocus()){
-		ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-		ui->vibranceFocusToggle->setEnabled(false);
-	}
 
 	connect(&timer, &QTimer::timeout, this, &mainWindow::updateSaturation);
 	timer.start(1000);
@@ -95,8 +89,7 @@ void mainWindow::setupFromConfig(){
 		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
 
 		//this is unused for now, but we'll use it later for whenever the config format changes
-		int configVersion;
-		Q_UNUSED(configVersion);
+        int configVersion;
 		//old configs didnt have a version
 		if(settings.contains("configVersion")){
 			configVersion = settings["configVersion"].toInt();
@@ -109,6 +102,27 @@ void mainWindow::setupFromConfig(){
 			QMessageBox::critical(this, "Unrecognized config version", err);
 			throw std::runtime_error(err);
 		}
+
+        if(configVersion != CURRENT_CONFIG_VER){
+            //only other version is v1, we are currently in v2
+            //the only change made is the addition of remembering
+            settings.insert("UseWindowFocus", true);
+        }
+
+        //default is true
+        //this code is also in the signal handler for the check state changing, dirty but I dont have time to design a better solution
+        if(!settings["UseWindowFocus"].toBool()){
+            manager.checkWindowFocus(false);
+            ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+            ui->vibranceFocusToggle->setToolTip("Checking this makes it so that saturation changes only apply when a window is in focus");
+        }
+        else {
+            if(!manager.isCheckingWindowFocus()){
+                manager.checkWindowFocus(false);
+                ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+                ui->vibranceFocusToggle->setToolTip("Failed to enabled focus checking, are you running an ewmh X server?");
+            }
+        }
 
 		auto configDisplaysArr = settings["displays"].toArray();
 
@@ -354,13 +368,16 @@ void mainWindow::defaultSaturationChanged(const QString &name, int value){
 
 void mainWindow::on_vibranceFocusToggle_clicked(bool checked){
 	manager.checkWindowFocus(checked);
-	//user tried to turn on ewmh features but it programScanner failed to set it up
+    //user tried to turn on ewmh features but programScanner failed to set it up
 	if(checked){
 		if(!manager.isCheckingWindowFocus()){
-			ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-			QMessageBox::warning(this, "Error", "Failed to connect to X server, cannot enable focus checking");
-		}
+            ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
+            ui->vibranceFocusToggle->setToolTip("Failed to enabled focus checking, are you running an ewmh X server?");
+            return;
+        }
 	}
+
+    ui->vibranceFocusToggle->setToolTip("Checking this makes it so that saturation changes only apply when a window is in focus");
 }
 
 void mainWindow::on_addProgram_clicked(){
