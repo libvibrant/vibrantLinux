@@ -57,9 +57,13 @@ FORMS += \
 	forms/entryeditor.ui \
 	forms/mainwindow.ui
 
+# get PREFIX from env or fallback to /usr
+prefix = $$(PREFIX)
+isEmpty(prefix): prefix = "/usr"
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /usr/bin
+else: unix:!android: target.path = $${prefix}/bin
 !isEmpty(target.path): INSTALLS += target
 
 
@@ -69,13 +73,13 @@ desktopconfig.output = io.github.zeemzha.vibrantLinux.desktop
 QMAKE_SUBSTITUTES += \
 	desktopconfig
 
-desktop.path = /usr/share/applications
+desktop.path = $${prefix}/share/applications
 desktop.files += $${desktopconfig.output}
 
-icons.path = /usr/share/icons/hicolor/512x512/apps
+icons.path = $${prefix}/share/icons/hicolor/512x512/apps
 icons.files += assets/io.github.zeemzha.vibrantLinux.png
 
-appdata.path = /usr/share/metainfo
+appdata.path = $${prefix}/share/metainfo
 appdata.files += assets/io.github.zeemzha.vibrantLinux.appdata.xml
 
 INSTALLS += desktop icons appdata
