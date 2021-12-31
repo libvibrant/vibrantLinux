@@ -15,7 +15,7 @@ const int CURRENT_CONFIG_VER = 2;
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
-	QIcon icon = QIcon::fromTheme("vibrantLinux", QIcon(":/assets/vibrantLinux.png"));
+	QIcon icon = QIcon::fromTheme("io.github.zeemzha.vibrantLinux", QIcon(":/assets/io.github.zeemzha.vibrantLinux.png"));
 	setWindowIcon(icon);
 	systray.setIcon(icon);
 

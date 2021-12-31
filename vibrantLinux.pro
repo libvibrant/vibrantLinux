@@ -63,8 +63,8 @@ else: unix:!android: target.path = /usr/bin
 !isEmpty(target.path): INSTALLS += target
 
 
-desktopconfig.input = assets/application.desktop.in
-desktopconfig.output = application.desktop
+desktopconfig.input = assets/io.github.zeemzha.vibrantLinux.desktop.in
+desktopconfig.output = io.github.zeemzha.vibrantLinux.desktop
 
 QMAKE_SUBSTITUTES += \
 	desktopconfig
@@ -72,10 +72,13 @@ QMAKE_SUBSTITUTES += \
 desktop.path = /usr/share/applications
 desktop.files += $${desktopconfig.output}
 
-icons.path = /usr/share/pixmaps
-icons.files += assets/vibrantLinux.png
+icons.path = /usr/share/icons/hicolor/512x512/apps
+icons.files += assets/io.github.zeemzha.vibrantLinux.png
 
-INSTALLS += desktop icons
+appdata.path = /usr/share/metainfo
+appdata.files += assets/io.github.zeemzha.vibrantLinux.appdata.xml
+
+INSTALLS += desktop icons appdata
 
 RESOURCES += \
 	resources.qrc
