@@ -21,7 +21,7 @@ The required packages are:
 - qt
 - libxcb
 - libxcb-ewmh
-- [libvibrant](https://gitlab.com/Scrumplex/vibrant/)
+- [libvibrant](https://github.com/Vibrance-org/libvibrant/)
 
 ## Installation
 
