@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>assets/vibrantLinux.png</file>
+        <file>assets/io.github.zeemzha.vibrantLinux.png</file>
     </qresource>
 </RCC>
