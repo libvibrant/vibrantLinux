@@ -12,7 +12,7 @@
             the saturation of any given screen whenever certain programs are launched/are in focus.
         </p>
     </description>
-    <launchable type="desktop-id">io.github.libvibrant.desktop</launchable>
+    <launchable type="desktop-id">io.github.libvibrant.vibrantLinux.desktop</launchable>
     <screenshots>
         <screenshot type="default">
             <image>https://github.com/libvibrant/vibrantLinux/raw/a80e4c87ff048cc938d3276db8b6a324c9480bda/assets/program.png</image>
