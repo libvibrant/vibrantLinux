@@ -2,7 +2,7 @@
 <component type="desktop-application">
     <id>io.github.zeemzha.vibrantLinux</id>
     <name>vibrantLinux</name>
-    <developer_name>zee</developer_name>
+    <developer_name>libvibrant Team</developer_name>
     <summary>System utility to adjust color saturation of X11 screens</summary>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>MIT</project_license>
