@@ -26,7 +26,7 @@ The required packages are:
 ## Installation
 
 ```bash
-git clone https://gitlab.com/libvibrant/vibrantLinux.git ~/vibrantlinux
+git clone https://github.com/libvibrant/vibrantLinux.git ~/vibrantlinux
 cd ~/vibrantlinux
 ./update.sh
 ```
