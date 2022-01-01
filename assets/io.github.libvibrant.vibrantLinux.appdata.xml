@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-    <id>io.github.zeemzha.vibrantLinux</id>
+    <id>io.github.libvibrant.vibrantLinux</id>
     <name>vibrantLinux</name>
     <developer_name>libvibrant Team</developer_name>
     <summary>System utility to adjust color saturation of X11 screens</summary>
@@ -12,10 +12,10 @@
             the saturation of any given screen whenever certain programs are launched/are in focus.
         </p>
     </description>
-    <launchable type="desktop-id">io.github.zeemzha.vibrantLinux.desktop</launchable>
+    <launchable type="desktop-id">io.github.zeemzha.libvibrant.desktop</launchable>
     <screenshots>
         <screenshot type="default">
-            <image>https://github.com/zee-mzha/vibrantLinux/raw/a80e4c87ff048cc938d3276db8b6a324c9480bda/assets/program.png</image>
+            <image>https://github.com/libvibrant/vibrantLinux/raw/a80e4c87ff048cc938d3276db8b6a324c9480bda/assets/program.png</image>
         </screenshot>
     </screenshots>
     <categories>
@@ -25,10 +25,10 @@
     <url type="bugtracker">https://github.com/zee-mzha/vibrantLinux/issues</url>
     <update_contact>contact@scrumplex.net</update_contact>
     <releases>
-         <release date="2020-11-01" version="2.1.6">
+        <release date="2022-01-01" version="2.1.7">
             <description>
                 <ul>
-                    <li>Initial release</li>
+                    <li>Initial flatpak release</li>
                 </ul>
             </description>
         </release>
