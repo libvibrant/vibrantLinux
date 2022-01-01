@@ -21,12 +21,12 @@ The required packages are:
 - qt
 - libxcb
 - libxcb-ewmh
-- [libvibrant](https://github.com/Vibrance-org/libvibrant/)
+- [libvibrant](https://github.com/libvibrant/libvibrant/)
 
 ## Installation
 
 ```bash
-git clone https://gitlab.com/zee220/vibrantlinux ~/vibrantlinux
+git clone https://gitlab.com/libvibrant/vibrantLinux.git ~/vibrantlinux
 cd ~/vibrantlinux
 ./update.sh
 ```
