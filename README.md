@@ -1,4 +1,10 @@
 # vibrantLinux
+<a href="https://repology.org/project/vibrantlinux/versions">
+    <img src="https://repology.org/badge/vertical-allrepos/vibrantlinux.svg" alt="Packaging status" align="right">
+</a>
+
+<a href='https://flathub.org/apps/details/io.github.libvibrant.vibrantLinux'><img width='240' alt='Download on Flathub' src='https://flathub.org/assets/badges/flathub-badge-en.png'/></a>
+
 Main Program:
 
 ![Main program](assets/program.png)
