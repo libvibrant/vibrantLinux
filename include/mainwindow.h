@@ -43,13 +43,16 @@ private:
 	QTimer timer;
 
 	QMenu systrayMenu;
+
+	QString m_configDir;
+	QString m_configPath;
 private slots:
 	void updateSaturation();
 	void defaultSaturationChanged(const QString &name, int value);
 
 	/*we have to keep the function in case VIBRANT_LINUX_NO_XCB is defined
 	otherwise moc_mainwindow will contain an undefined refernece to it*/
-	void on_vibranceFocusToggle_clicked(bool checked);
+	void on_vibranceFocusToggle_toggled(bool checked);
 	void on_addProgram_clicked();
 	void on_delProgram_clicked();
 	void on_programs_doubleClicked(const QModelIndex &index);

@@ -15,6 +15,10 @@ const int CURRENT_CONFIG_VER = 2;
 mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWindow){
 	ui->setupUi(this);
 
+	m_configDir = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
+	QDir configDir(m_configDir);
+	m_configPath = configDir.filePath("vibrantLinux.internal");
+
 	QIcon icon = QIcon::fromTheme("io.github.libvibrant.vibrantLinux", QIcon(":/assets/io.github.libvibrant.vibrantLinux.png"));
 	setWindowIcon(icon);
 	systray.setIcon(icon);
@@ -79,52 +83,34 @@ void mainWindow::setupFromConfig(){
 		tabs.push_back(dpyTab);
 	}
 
-	//check if config file exists, and if it does read it. Otherwise generate one
-	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
-	bool newConfig = true;
-	Q_UNUSED(newConfig);
+	QFile settingsFile(m_configPath);
 
-	if(QFile::exists(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal")){
+	// load config if it exists
+	if(settingsFile.exists()){
 		settingsFile.open(QFile::ReadOnly);
 		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
+		settingsFile.close();
+	}
 
-		//this is unused for now, but we'll use it later for whenever the config format changes
-        int configVersion;
-		//old configs didnt have a version
-		if(settings.contains("configVersion")){
-			configVersion = settings["configVersion"].toInt();
-		}
-		else{
-			//this is useless for now, but will be used later on when config versions are updated
-			newConfig = false;
-			auto err = "Unrecognized config version, please delete "
-							  "~/.config/vibrantLinux/vibrantLinux.internal and try again";
-			QMessageBox::critical(this, "Unrecognized config version", err);
-			throw std::runtime_error(err);
-		}
+	//this is unused for now, but we'll use it later for whenever the config format changes
+	int configVersion = settings.value("configVersion").toInt(-1);
+	if(configVersion < 0){
+		//this is useless for now, but will be used later on when config versions are updated
+		auto err = "Unrecognized config version, please delete "
+						  "~/.config/vibrantLinux/vibrantLinux.internal and try again";
+		QMessageBox::critical(this, "Unrecognized config version", err);
+		throw std::runtime_error(err);
+	}
+	Q_UNUSED(configVersion);
 
-        if(configVersion != CURRENT_CONFIG_VER){
-            //only other version is v1, we are currently in v2
-            //the only change made is the addition of remembering
-            settings.insert("UseWindowFocus", true);
-        }
+	{
+		bool useWindowFocus = settings.value("UseWindowFocus").toBool(true);
+		ui->vibranceFocusToggle->setChecked(false); // make sure we trigger on_toggled
+		ui->vibranceFocusToggle->setChecked(useWindowFocus);
+	}
 
-        //default is true
-        //this code is also in the signal handler for the check state changing, dirty but I dont have time to design a better solution
-        if(!settings["UseWindowFocus"].toBool()){
-            manager.checkWindowFocus(false);
-            ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-            ui->vibranceFocusToggle->setToolTip("Checking this makes it so that saturation changes only apply when a window is in focus");
-        }
-        else {
-            if(!manager.isCheckingWindowFocus()){
-                manager.checkWindowFocus(false);
-                ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-                ui->vibranceFocusToggle->setToolTip("Failed to enabled focus checking, are you running an ewmh X server?");
-            }
-        }
-
-		auto configDisplaysArr = settings["displays"].toArray();
+	{
+		auto configDisplaysArr = settings.value("displays").toArray(QJsonArray());
 
 		if(monitorSetupChanged(configDisplaysArr)){
 			//displayNames that have carried over from the setup change
@@ -189,7 +175,9 @@ void mainWindow::setupFromConfig(){
 				}
 			}
 
-			for(auto programRef: settings["programs"].toArray()){
+			auto configProgramsArr = settings.value("programs").toArray(QJsonArray());
+
+			for(auto programRef: configProgramsArr){
 				QJsonObject program = programRef.toObject();
 				QHash<QString, int> vibranceVals;
 				auto type = programInfo::stringToEntryType(program["type"].toString());;
@@ -205,15 +193,6 @@ void mainWindow::setupFromConfig(){
 				addEntry(programInfo(type, program["matchString"].toString(), vibranceVals));
 			}
 		}
-	}
-	else{
-		QDir dir = QDir::homePath();
-		dir.mkpath(".config/vibrantLinux/");
-		settingsFile.open(QFile::WriteOnly);
-
-		settings = generateConfig();
-		settingsFile.write(QJsonDocument(settings).toJson());
-		settingsFile.close();
 	}
 
 	for(auto tab: tabs){
@@ -233,31 +212,6 @@ bool mainWindow::monitorSetupChanged(const QJsonArray &configDisplays){
 	}
 
 	return true;
-}
-
-QJsonObject mainWindow::generateConfig(){
-	QJsonObject res;
-
-	res.insert("configVersion", CURRENT_CONFIG_VER);
-
-	//store the displays as an array
-	QJsonArray tmpArr;
-	for(auto &name: displayNames){
-		QJsonObject dpyObject;
-		dpyObject.insert("name", name);
-		dpyObject.insert("vibrance", manager.getDisplaySaturation(name));
-
-		tmpArr.append(dpyObject);
-	}
-	res.insert("displays", tmpArr);
-
-	//clear the array
-	tmpArr = QJsonArray();
-
-	//create an empty programs array
-	res.insert("programs", tmpArr);
-
-	return res;
 }
 
 void mainWindow::writeConfig(){
@@ -304,8 +258,13 @@ void mainWindow::writeConfig(){
 	}
 	obj.insert("programs", tmpArr);
 
+	obj.insert("UseWindowFocus", ui->vibranceFocusToggle->isChecked());
 
-	QFile settingsFile(QDir::homePath()+"/.config/vibrantLinux/vibrantLinux.internal");
+
+	QDir settingsDir(m_configDir);
+	settingsDir.mkpath(".");  // ensure config path exists
+
+	QFile settingsFile(m_configPath);
 	//conversion auto formats json
 	settingsFile.open(QIODevice::WriteOnly);
 	settingsFile.write(QJsonDocument(obj).toJson());
@@ -366,18 +325,19 @@ void mainWindow::defaultSaturationChanged(const QString &name, int value){
 	writeConfig();
 }
 
-void mainWindow::on_vibranceFocusToggle_clicked(bool checked){
+void mainWindow::on_vibranceFocusToggle_toggled(bool checked){
 	manager.checkWindowFocus(checked);
     //user tried to turn on ewmh features but programScanner failed to set it up
 	if(checked){
 		if(!manager.isCheckingWindowFocus()){
-            ui->vibranceFocusToggle->setCheckState(Qt::Unchecked);
-            ui->vibranceFocusToggle->setToolTip("Failed to enabled focus checking, are you running an ewmh X server?");
-            return;
-        }
+			ui->vibranceFocusToggle->setDisabled(true);
+			ui->vibranceFocusToggle->setChecked(false);
+			ui->vibranceFocusToggle->setToolTip("Failed to enable focus checking, are you running an ewmh X server?");
+			return;
+		}
 	}
 
-    ui->vibranceFocusToggle->setToolTip("Checking this makes it so that saturation changes only apply when a window is in focus");
+	writeConfig();
 }
 
 void mainWindow::on_addProgram_clicked(){

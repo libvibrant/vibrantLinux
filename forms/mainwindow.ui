@@ -36,6 +36,9 @@
     </item>
     <item row="2" column="0">
      <widget class="QCheckBox" name="vibranceFocusToggle">
+      <property name="toolTip">
+       <string>Checking this makes it so that saturation changes only apply when a window is in focus</string>
+      </property>
       <property name="text">
        <string>Set vibrance only when program is in focus</string>
       </property>
