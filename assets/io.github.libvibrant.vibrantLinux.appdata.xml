@@ -25,6 +25,13 @@
     <url type="bugtracker">https://github.com/libvibrant/vibrantLinux/issues</url>
     <update_contact>contact@scrumplex.net</update_contact>
     <releases>
+        <release date="2022-03-20" version="2.1.8">
+            <description>
+                <ul>
+                    <li>Fix config loading issues</li>
+                </ul>
+            </description>
+        </release>
         <release date="2022-01-01" version="2.1.7">
             <description>
                 <ul>
