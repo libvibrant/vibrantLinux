@@ -85,15 +85,19 @@ void mainWindow::setupFromConfig(){
 
 	QFile settingsFile(m_configPath);
 
+    int configVersion;
 	// load config if it exists
 	if(settingsFile.exists()){
 		settingsFile.open(QFile::ReadOnly);
 		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
 		settingsFile.close();
-	}
+
+        configVersion = settings.value("configVersion").toInt(-1);
+	} else {
+        configVersion = CURRENT_CONFIG_VER;
+    }
 
 	//this is unused for now, but we'll use it later for whenever the config format changes
-	int configVersion = settings.value("configVersion").toInt(-1);
 	if(configVersion < 0){
 		//this is useless for now, but will be used later on when config versions are updated
 		auto err = "Unrecognized config version, please delete "
