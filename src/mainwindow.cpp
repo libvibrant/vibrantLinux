@@ -42,6 +42,8 @@ mainWindow::mainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::mainWi
 
 	connect(&timer, &QTimer::timeout, this, &mainWindow::updateSaturation);
 	timer.start(1000);
+
+	m_loaded = true;
 }
 
 mainWindow::~mainWindow(){
@@ -85,16 +87,14 @@ void mainWindow::setupFromConfig(){
 
 	QFile settingsFile(m_configPath);
 
-    int configVersion;
+	int configVersion = CURRENT_CONFIG_VER;
 	// load config if it exists
 	if(settingsFile.exists()){
 		settingsFile.open(QFile::ReadOnly);
 		settings = QJsonDocument::fromJson(settingsFile.readAll()).object();
 		settingsFile.close();
 
-        configVersion = settings.value("configVersion").toInt(-1);
-	} else {
-        configVersion = CURRENT_CONFIG_VER;
+		configVersion = settings.value("configVersion").toInt(-1);
     }
 
 	//this is unused for now, but we'll use it later for whenever the config format changes
@@ -109,7 +109,6 @@ void mainWindow::setupFromConfig(){
 
 	{
 		bool useWindowFocus = settings.value("UseWindowFocus").toBool(true);
-		ui->vibranceFocusToggle->setChecked(false); // make sure we trigger on_toggled
 		ui->vibranceFocusToggle->setChecked(useWindowFocus);
 	}
 
@@ -219,6 +218,12 @@ bool mainWindow::monitorSetupChanged(const QJsonArray &configDisplays){
 }
 
 void mainWindow::writeConfig(){
+	if (!m_loaded) {
+		// writeConfig can be called while we are loading the config.
+		// Not everything might be loaded by now, so let's ignore this
+		return;
+	}
+
 	QJsonObject obj;
 	obj.insert("configVersion", CURRENT_CONFIG_VER);
 
@@ -326,7 +331,6 @@ void mainWindow::updateSaturation(){
 
 void mainWindow::defaultSaturationChanged(const QString &name, int value){
 	manager.setDefaultDisplaySaturation(name, value);
-	writeConfig();
 }
 
 void mainWindow::on_vibranceFocusToggle_toggled(bool checked){

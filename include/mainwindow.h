@@ -46,6 +46,8 @@ private:
 
 	QString m_configDir;
 	QString m_configPath;
+
+	bool m_loaded;
 private slots:
 	void updateSaturation();
 	void defaultSaturationChanged(const QString &name, int value);
