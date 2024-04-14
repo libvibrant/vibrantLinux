@@ -2,4 +2,5 @@
 .pre-commit-config.yaml
 result
 
+.cache/
 build/

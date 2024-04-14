@@ -7,7 +7,7 @@ const QString filename = "vibrantLinux.desktop";
 const QByteArray autostart_file_content =
     "[Desktop Entry]\n"
     "Version=1.0\n"
-    "Name=Vibrant Linux\n"
+    "Name=vibrantLinux\n"
     "GenericName=Digital vibrance controller\n"
     "Comment=Program-specific digital vibrance controller\n"
     "Exec=/usr/bin/vibrantLinux --hidden\n"

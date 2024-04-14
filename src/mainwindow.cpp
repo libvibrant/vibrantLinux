@@ -413,7 +413,7 @@ void mainWindow::on_actionExit_triggered() {
 void mainWindow::on_actionAbout_triggered() {
   QMessageBox::about(
       this, "About",
-      QString("Vibrant Linux is a program to automatically set the color "
+      QString("vigrantLinux is a program to automatically set the color "
               "saturation "
               "of specific monitors depending on what program is current "
               "running.\n\n"
