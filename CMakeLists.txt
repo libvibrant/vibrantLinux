@@ -34,7 +34,7 @@ qt_add_executable(vibrantLinux
 qt_add_resources(vibrantLinux assets
     PREFIX "/"
     BASE assets
-    FILES assets/io.github.libvibrant.vibrantLinux.png assets/io.github.libvibrant.vibrantLinux.desktop.in
+    FILES assets/io.github.libvibrant.vibrantLinux.png assets/io.github.libvibrant.vibrantLinux.desktop
 )
 
 target_compile_definitions(vibrantLinux PUBLIC
@@ -43,10 +43,9 @@ target_compile_definitions(vibrantLinux PUBLIC
 
 target_link_libraries(vibrantLinux PRIVATE Qt6::Core Qt6::Widgets m ${X11_LIBRARIES} ${XCB_LIBRARIES} ${vibrant_LIB})
 
-set(vibrantLinux_TARGET_FILE $<TARGET_FILE:vibrantLinux>)
+install(TARGETS vibrantLinux DESTINATION ${CMAKE_INSTALL_BINDIR})
 
-configure_file(assets/io.github.libvibrant.vibrantLinux.desktop.in ${CMAKE_CURRENT_BINARY_DIR}/io.github.libvibrant.vibrantLinux.desktop @ONLY)
-install(FILES ${CMAKE_CURRENT_BINARY_DIR}/io.github.libvibrant.vibrantLinux.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+install(FILES assets/io.github.libvibrant.vibrantLinux.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
 
 install(FILES assets/io.github.libvibrant.vibrantLinux.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/512x512/apps)
 install(FILES assets/io.github.libvibrant.vibrantLinux.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)

@@ -48,7 +48,8 @@ bool autostart::enable() {
     internalDesktopFile.close();
 
     auto desktopFileContents = desktopFileTemplate.replace(
-        "@vibrantLinux_TARGET_FILE@", QCoreApplication::applicationFilePath());
+        "Exec=vibrantLinux",
+        QString("Exec=%1").arg(QCoreApplication::applicationFilePath()));
 
     auto autostartFile = QFile(autostartFileInfo.absoluteFilePath());
     autostartFile.open(QIODeviceBase::WriteOnly);
