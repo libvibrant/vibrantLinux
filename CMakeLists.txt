@@ -34,7 +34,7 @@ qt_add_executable(vibrantLinux
 qt_add_resources(vibrantLinux assets
     PREFIX "/"
     BASE assets
-    FILES assets/io.github.libvibrant.vibrantLinux.png
+    FILES assets/io.github.libvibrant.vibrantLinux.png assets/io.github.libvibrant.vibrantLinux.desktop.in
 )
 
 target_compile_definitions(vibrantLinux PUBLIC
