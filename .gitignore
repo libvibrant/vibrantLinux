@@ -1,2 +1,6 @@
-vibrantLinux.pro.user*
+.direnv/
+.pre-commit-config.yaml
+result
 
+.cache/
+build/

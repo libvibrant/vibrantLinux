@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>425</width>
+    <width>465</width>
     <height>404</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Vibrant Linux</string>
+   <string>vibrantLinux</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <property name="font">
@@ -30,8 +30,37 @@
     <item row="3" column="0" colspan="2">
      <widget class="QTabWidget" name="displays">
       <property name="currentIndex">
-       <number>-1</number>
+       <number>0</number>
       </property>
+      <property name="tabBarAutoHide">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="noDisplaysTab">
+       <attribute name="title">
+        <string>Page</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;None of your display outputs are supported.&lt;/p&gt;&lt;p&gt;Please check the &lt;a href=&quot;https://github.com/libvibrant/libvibrant/wiki/Compatibility&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#89b4fa;&quot;&gt;Compatibility FAQ&lt;/span&gt;&lt;/a&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+          <property name="wordWrap">
+           <bool>true</bool>
+          </property>
+          <property name="openExternalLinks">
+           <bool>true</bool>
+          </property>
+          <property name="textInteractionFlags">
+           <set>Qt::LinksAccessibleByKeyboard|Qt::LinksAccessibleByMouse</set>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
     <item row="2" column="0">
@@ -64,8 +93,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>425</width>
-     <height>22</height>
+     <width>465</width>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuOptions">
@@ -106,7 +135,7 @@
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About Vibrant Linux</string>
+    <string>About vibrantLinux</string>
    </property>
    <property name="shortcut">
     <string>F1</string>
@@ -117,7 +146,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Run Vibrant Linux on Startup</string>
+    <string>Run vibrantLinux on Startup</string>
    </property>
   </action>
  </widget>

@@ -1,49 +1,70 @@
 #include "autostart.h"
 
+#include <QCoreApplication>
+#include <QDebug>
 #include <QDir>
+#include <QFile>
+#include <QStandardPaths>
 
-QDir path(QDir::homePath() + "/.config/autostart");
-const QString filename = "vibrantLinux.desktop";
-const QByteArray autostart_file_content = "[Desktop Entry]\n"
-		"Version=1.0\n"
-		"Name=Vibrant Linux\n"
-		"GenericName=Digital vibrance controller\n"
-		"Comment=Program-specific digital vibrance controller\n"
-		"Exec=/usr/bin/vibrantLinux --hidden\n"
-		"Icon=vibrantLinux\n"
-		"Terminal=false\n"
-		"Type=Application\n"
-		"Categories=Utility;\n";
+const QString filename = "io.github.libvibrant.vibrantLinux.desktop";
 
-static const QString internalFilename(":/autostart.desktop");
-
-bool autostart::isEnabled() {
-	// If file or autostart path doesn't exist
-	if (!path.exists() || !path.exists(filename)){
-		return false;
-	}
-	return true;
+QString autostartFilePath() {
+  QDir configDir =
+      QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
+  QDir autostartDir = configDir.filePath("autostart");
+  return autostartDir.filePath(filename);
 }
+
+bool autostart::isEnabled() { return QFileInfo::exists(autostartFilePath()); }
 
 bool autostart::enable() {
-	if (!path.exists()){
-		QDir::home().mkpath(path.absolutePath());
-	}
+  auto autostartFileInfo = QFileInfo(autostartFilePath());
 
-	QFile autostart(path.absoluteFilePath(filename));
-	autostart.open(QFile::WriteOnly);
-	if(!autostart.isOpen()){
-		return false;
-	}
+  auto autostartDir = autostartFileInfo.dir();
 
-	if(autostart.write(autostart_file_content) != autostart_file_content.size()){
-		autostart.remove();
-		return false;
-	}
+  if (!autostartDir.exists()) {
+    autostartDir.mkpath(".");
+  };
 
-	return true;
+  // If there is a desktop file on the system, link that to autostart
+  {
+    auto desktopFilePath =
+        QStandardPaths::locate(QStandardPaths::ApplicationsLocation, filename,
+                               QStandardPaths::LocateFile);
+
+    if (!desktopFilePath.isEmpty()) {
+      auto desktopFile = QFile(desktopFilePath);
+      desktopFile.link(autostartFileInfo.absoluteFilePath());
+      return true;
+    }
+  }
+
+  // Create our own if there is no desktop file
+  {
+    auto internalDesktopFile = QFile(QString(":/%1.in").arg(filename));
+
+    internalDesktopFile.open(QIODeviceBase::ReadOnly);
+    QString desktopFileTemplate = internalDesktopFile.readAll();
+    internalDesktopFile.close();
+
+    auto desktopFileContents = desktopFileTemplate.replace(
+        "Exec=vibrantLinux",
+        QString("Exec=%1").arg(QCoreApplication::applicationFilePath()));
+
+    auto autostartFile = QFile(autostartFileInfo.absoluteFilePath());
+    autostartFile.open(QIODeviceBase::WriteOnly);
+    if (autostartFile.write(desktopFileContents.toUtf8()) !=
+        desktopFileContents.length()) {
+      autostartFile.close();
+      autostartFile.remove();
+      qWarning() << "Couldn't write desktop file to" << autostartFileInfo;
+      return false;
+    };
+    autostartFile.close();
+    return true;
+  }
+
+  return false;
 }
 
-bool autostart::disable() {
-	return QFile::remove(path.absoluteFilePath(filename));
-}
+bool autostart::disable() { return QFile::remove(autostartFilePath()); }
