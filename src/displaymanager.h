@@ -1,9 +1,9 @@
 #ifndef DISPLAYMANAGER_H
 #define DISPLAYMANAGER_H
 
-#include <QStringList>
 #include <QHash>
 #include <QListWidget>
+#include <QStringList>
 
 #include <vibrant/vibrant.h>
 
@@ -21,35 +21,35 @@
 
 #include "procscanner.h"
 
-class displayManager{
+class displayManager {
 public:
-	displayManager();
-	~displayManager();
+  displayManager();
+  ~displayManager();
 
-	QStringList getDisplayNames();
-	int getDisplaySaturation(const QString& name);
+  QStringList getDisplayNames();
+  int getDisplaySaturation(const QString &name);
 
-	void updateSaturation(QListWidget* watchlist);
+  void updateSaturation(QListWidget *watchlist);
 
-	void checkWindowFocus(bool use);
-	bool isCheckingWindowFocus();
+  void checkWindowFocus(bool use);
+  bool isCheckingWindowFocus();
 
-	//creates or updates an entry in the watchlist
-	void setDefaultDisplaySaturation(const QString& name, int value);
+  // creates or updates an entry in the watchlist
+  void setDefaultDisplaySaturation(const QString &name, int value);
 
 private:
-	struct controller{
-		vibrant_controller *v_controller;
-		int defaultSaturation;
-	};
+  struct controller {
+    vibrant_controller *v_controller;
+    int defaultSaturation;
+  };
 
-	vibrant_instance *instance;
-	vibrant_controller *controllers_arr;
-	size_t controllers_size;
-	procScanner scanner;
+  vibrant_instance *instance;
+  vibrant_controller *controllers_arr;
+  size_t controllers_size;
+  procScanner scanner;
 
-	QStringList displays;
-	QHash<QString, controller> controllers;
+  QStringList displays;
+  QHash<QString, controller> controllers;
 };
 
 #endif // DISPLAYMANAGER_H

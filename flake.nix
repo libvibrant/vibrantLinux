@@ -33,6 +33,13 @@
           pre-commit-check = git-hooks.lib.${system}.run {
             src = ./.;
             hooks = {
+              clang-format = {
+                enable = true;
+                types_or = [
+                  "c"
+                  "c++"
+                ];
+              };
               nixfmt = {
                 enable = true;
                 package = self.formatter.${system};
