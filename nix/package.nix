@@ -6,6 +6,7 @@
   libxcb,
   libXrandr,
   linuxPackages,
+  pkg-config,
   qtbase,
   qttools,
   wrapQtAppsHook,
@@ -28,6 +29,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   nativeBuildInputs = [
     cmake
+    pkg-config
     wrapQtAppsHook
   ];
 

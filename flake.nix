@@ -3,11 +3,15 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     git-hooks.url = "github:cachix/git-hooks.nix";
     git-hooks.inputs.nixpkgs.follows = "nixpkgs";
+    libvibrant.url = "github:libvibrant/libvibrant";
+    libvibrant.inputs.nixpkgs.follows = "nixpkgs";
+    libvibrant.inputs.git-hooks.follows = "git-hooks";
   };
 
   outputs =
     {
       git-hooks,
+      libvibrant,
       nixpkgs,
       self,
       ...
@@ -22,9 +26,11 @@
     in
     {
       packages = forAllSystems (
-        pkgs: _: rec {
+        pkgs: system: rec {
           default = vibrantlinux;
-          vibrantlinux = pkgs.qt6Packages.callPackage ./nix/package.nix { };
+          vibrantlinux = pkgs.qt6Packages.callPackage ./nix/package.nix {
+            inherit (libvibrant.packages.${system}) libvibrant;
+          };
         }
       );
 

@@ -7,9 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
 
-find_package(X11 REQUIRED COMPONENTS Xrandr)
 find_package(XCB REQUIRED COMPONENTS EWMH)
-find_library(vibrant_LIB vibrant REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(vibrant REQUIRED vibrant)
 
 qt_standard_project_setup()
 
@@ -41,7 +41,7 @@ target_compile_definitions(vibrantLinux PUBLIC
     VIBRANT_LINUX_VERSION="${CMAKE_PROJECT_VERSION}"
 )
 
-target_link_libraries(vibrantLinux PRIVATE Qt6::Core Qt6::Widgets m ${X11_LIBRARIES} ${XCB_LIBRARIES} ${vibrant_LIB})
+target_link_libraries(vibrantLinux PRIVATE Qt6::Core Qt6::Widgets ${XCB_LIBRARIES} ${vibrant_LIBRARIES})
 
 install(TARGETS vibrantLinux DESTINATION ${CMAKE_INSTALL_BINDIR})
 

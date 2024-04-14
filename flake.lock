@@ -79,6 +79,29 @@
         "type": "github"
       }
     },
+    "libvibrant": {
+      "inputs": {
+        "git-hooks": [
+          "git-hooks"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1713109928,
+        "narHash": "sha256-HksQGrZJGkarmSS/2Pu/WqR8KFe2j1hEC2f/ojFxEN8=",
+        "owner": "libvibrant",
+        "repo": "libvibrant",
+        "rev": "6c81c86573922d5e9b14dc0cfabafc9fd217cbeb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "libvibrant",
+        "repo": "libvibrant",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1712791164,
@@ -114,6 +137,7 @@
     "root": {
       "inputs": {
         "git-hooks": "git-hooks",
+        "libvibrant": "libvibrant",
         "nixpkgs": "nixpkgs"
       }
     },
