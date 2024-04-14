@@ -22,7 +22,6 @@ stdenv.mkDerivation (finalAttrs: {
         "assets"
         "src"
         "CMakeLists.txt"
-        "resources.qrc"
       ]
     );
   };

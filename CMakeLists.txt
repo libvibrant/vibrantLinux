@@ -13,10 +13,6 @@ find_library(vibrant_LIB vibrant REQUIRED)
 
 qt_standard_project_setup()
 
-qt_add_resources(vibrantLinux_RESOURCES
-    resources.qrc
-)
-
 qt_add_executable(vibrantLinux
     ${vibrantLinux_RESOURCES}
     src/autostart.cpp
@@ -33,6 +29,12 @@ qt_add_executable(vibrantLinux
     src/procscanner.cpp
     src/procscanner.h
     src/programinfo.h
+)
+
+qt_add_resources(vibrantLinux assets
+    PREFIX "/"
+    BASE assets
+    FILES assets/io.github.libvibrant.vibrantLinux.png
 )
 
 target_compile_definitions(vibrantLinux PUBLIC

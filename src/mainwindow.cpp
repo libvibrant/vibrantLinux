@@ -22,7 +22,7 @@ mainWindow::mainWindow(QWidget *parent)
 
   QIcon icon =
       QIcon::fromTheme("io.github.libvibrant.vibrantLinux",
-                       QIcon(":/assets/io.github.libvibrant.vibrantLinux.png"));
+                       QIcon(":/io.github.libvibrant.vibrantLinux.png"));
   setWindowIcon(icon);
   systray.setIcon(icon);
 
