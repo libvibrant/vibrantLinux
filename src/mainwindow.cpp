@@ -38,6 +38,10 @@ mainWindow::mainWindow(QWidget *parent)
   ui->actionRunOnStartup->setChecked(autostart::isEnabled());
 
   for (int i = 0; i < ui->displays->count(); i++) {
+    auto tab = ui->displays->widget(i);
+    if (tab == ui->noDisplaysTab)
+      continue;
+
     auto dpyTab = dynamic_cast<displayTab *>(ui->displays->widget(i));
     connect(dpyTab, &displayTab::onSaturationChange, this,
             &mainWindow::defaultSaturationChanged);
@@ -216,6 +220,10 @@ void mainWindow::setupFromConfig() {
     }
   }
 
+  if (tabs.size() > 0) {
+    ui->displays->setTabBarAutoHide(false);
+    ui->displays->removeTab(0);
+  }
   for (auto tab : tabs) {
     ui->displays->addTab(tab, tab->getName());
   }
@@ -248,7 +256,10 @@ void mainWindow::writeConfig() {
   // use to temporarily store monitor list while we add to it
   QJsonArray tmpArr;
   for (int i = 0; i < ui->displays->count(); i++) {
-    displayTab *dpy = dynamic_cast<displayTab *>(ui->displays->widget(i));
+    auto tab = ui->displays->widget(i);
+    if (tab == ui->noDisplaysTab)
+      continue;
+    displayTab *dpy = dynamic_cast<displayTab *>(tab);
     QJsonObject tmpObj;
     tmpObj.insert("name", dpy->getName());
     tmpObj.insert("vibrance", dpy->getSaturation());

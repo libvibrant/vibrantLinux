@@ -5,6 +5,7 @@
 #include <QListWidget>
 #include <QStringList>
 
+#include <exception>
 #include <vibrant/vibrant.h>
 
 #undef Bool

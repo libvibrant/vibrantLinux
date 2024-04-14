@@ -13,9 +13,6 @@ displayManager::displayManager() : scanner(true) {
 
   vibrant_instance_get_controllers(instance, &controllers_arr,
                                    &controllers_size);
-  if (controllers_size == 0) {
-    throw std::runtime_error("this system has no supported displays");
-  }
 
   for (size_t i = 0; i < controllers_size; i++) {
     auto name = controllers_arr[i].info->name;
