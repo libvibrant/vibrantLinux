@@ -7,8 +7,7 @@
 #include <QDir>
 #include <QJsonDocument>
 #include <QJsonArray>
-
-#include <algorithm>
+#include <QStandardPaths>
 
 const int CURRENT_CONFIG_VER = 2;
 

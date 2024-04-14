@@ -14,9 +14,7 @@
     {
       packages = forAllSystems (pkgs: rec {
         default = vibrantlinux;
-        vibrantlinux = pkgs.vibrantlinux.overrideAttrs (prev: {
-          nativeBuildInputs = prev.nativeBuildInputs or [ ] ++ [ pkgs.cmake ];
-        });
+        vibrantlinux = pkgs.qt6Packages.callPackage ./nix/package.nix { };
       });
 
       formatter = forAllSystems (pkgs: pkgs.nixfmt-rfc-style);

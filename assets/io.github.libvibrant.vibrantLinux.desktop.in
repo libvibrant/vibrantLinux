@@ -1,9 +1,9 @@
 [Desktop Entry]
 Version=1.0
-Name=Vibrant Linux
+Name=vibrantLinux
 GenericName=Digital vibrance controller
 Comment=Program-specific digital vibrance controller
-Exec=$${target.path}/vibrantLinux
+Exec=@vibrantLinux_TARGET_FILE@
 Icon=io.github.libvibrant.vibrantLinux
 Terminal=false
 Type=Application
