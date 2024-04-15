@@ -7,24 +7,24 @@
 #include <QJsonObject>
 #include <QMetaType>
 
-class programInfo {
+class ProgramInfo {
 public:
-  enum entryType { MatchPath, MatchTitle, SubMatchTitle, RegexMatchTitle };
+  enum EntryType { MatchPath, MatchTitle, SubMatchTitle, RegexMatchTitle };
 
   // can't really add a fromJson ctor type thing because it needs to take into
   // account changing monitor configs
-  programInfo(entryType type, const QString &matchString,
+  ProgramInfo(EntryType type, const QString &matchString,
               const QHash<QString, int> &saturationVals)
       : type(type), matchString(matchString.toUtf8()),
         saturationVals(saturationVals) {}
 
-  programInfo(const programInfo &other) {
+  ProgramInfo(const ProgramInfo &other) {
     type = other.type;
     matchString = other.matchString;
     saturationVals = other.saturationVals;
   }
 
-  programInfo(programInfo &&other) {
+  ProgramInfo(ProgramInfo &&other) {
     type = other.type;
     matchString = std::move(other.matchString);
     saturationVals = std::move(other.saturationVals);
@@ -49,7 +49,7 @@ public:
     return path.split('/').last();
   }
 
-  static QString entryTypeToString(entryType type) {
+  static QString entryTypeToString(EntryType type) {
     switch (type) {
     case MatchPath:
       return "MatchPath";
@@ -65,26 +65,26 @@ public:
     }
   }
 
-  static entryType stringToEntryType(const QString &string) {
+  static EntryType stringToEntryType(const QString &string) {
     if (string == "MatchPath") {
-      return entryType::MatchPath;
+      return EntryType::MatchPath;
     } else if (string == "MatchTitle") {
-      return entryType::MatchTitle;
+      return EntryType::MatchTitle;
     } else if (string == "SubMatchTitle") {
-      return entryType::SubMatchTitle;
+      return EntryType::SubMatchTitle;
     } else if (string == "RegexMatchTitle") {
-      return entryType::RegexMatchTitle;
+      return EntryType::RegexMatchTitle;
     }
 
     throw std::runtime_error("invalid string");
   }
 
-  entryType type;
+  EntryType type;
   // cant use QString because it stores stuff as utf-16, we need it to be utf-8
   QByteArray matchString;
   QHash<QString, int> saturationVals;
 };
 
-Q_DECLARE_METATYPE(programInfo *)
+Q_DECLARE_METATYPE(ProgramInfo *)
 
 #endif // PROGRAMINFO_H

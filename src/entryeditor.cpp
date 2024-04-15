@@ -1,12 +1,12 @@
 #include "entryeditor.h"
 #include "ui_entryeditor.h"
 
-entryEditor::entryEditor(programInfo &entry, const QStringList &displayNames,
+EntryEditor::EntryEditor(ProgramInfo &entry, const QStringList &displayNames,
                          QWidget *parent)
-    : QDialog(parent), ui(new Ui::entryEditor), entry(entry) {
+    : QDialog(parent), ui(new Ui::EntryEditor), entry(entry) {
   ui->setupUi(this);
 
-  bool isPath = entry.type == programInfo::MatchPath;
+  bool isPath = entry.type == ProgramInfo::MatchPath;
   ui->path->setEnabled(isPath);
   ui->pathSelectBt->setEnabled(isPath);
 
@@ -19,13 +19,13 @@ entryEditor::entryEditor(programInfo &entry, const QStringList &displayNames,
     ui->titleMatchRbt->setChecked(true);
     ui->titleMatch->setText(entry.matchString);
     switch (entry.type) {
-    case programInfo::MatchPath:
+    case ProgramInfo::MatchPath:
       ui->titleMatchTypeCb->setCurrentIndex(0);
       break;
-    case programInfo::SubMatchTitle:
+    case ProgramInfo::SubMatchTitle:
       ui->titleMatchTypeCb->setCurrentIndex(1);
       break;
-    case programInfo::RegexMatchTitle:
+    case ProgramInfo::RegexMatchTitle:
       ui->titleMatchTypeCb->setCurrentIndex(2);
       break;
     }
@@ -43,9 +43,9 @@ entryEditor::entryEditor(programInfo &entry, const QStringList &displayNames,
   }
 }
 
-entryEditor::~entryEditor() { delete ui; }
+EntryEditor::~EntryEditor() { delete ui; }
 
-void entryEditor::on_pathSelectBt_clicked() {
+void EntryEditor::on_pathSelectBt_clicked() {
   QString program = QFileDialog::getOpenFileName(
       this, "Select a program", QDir::homePath(), "Executable (*)", nullptr);
   if (program.isNull()) {
@@ -60,11 +60,11 @@ void entryEditor::on_pathSelectBt_clicked() {
   ui->path->setText(program);
 }
 
-void entryEditor::on_titleMatchTypeCb_currentIndexChanged(int index) {
+void EntryEditor::on_titleMatchTypeCb_currentIndexChanged(int index) {
   switch (index) {}
 }
 
-void entryEditor::on_pathMatchRbt_clicked() {
+void EntryEditor::on_pathMatchRbt_clicked() {
   ui->path->setEnabled(true);
   ui->pathSelectBt->setEnabled(true);
 
@@ -72,7 +72,7 @@ void entryEditor::on_pathMatchRbt_clicked() {
   ui->titleMatchTypeCb->setEnabled(false);
 }
 
-void entryEditor::on_titleMatchRbt_clicked() {
+void EntryEditor::on_titleMatchRbt_clicked() {
   ui->path->setEnabled(false);
   ui->pathSelectBt->setEnabled(false);
 
@@ -80,7 +80,7 @@ void entryEditor::on_titleMatchRbt_clicked() {
   ui->titleMatchTypeCb->setEnabled(true);
 }
 
-void entryEditor::accept() {
+void EntryEditor::accept() {
   // its at times like these that I wish i'd written this in rust all those
   // years ago
   if (ui->pathMatchRbt->isChecked()) {
@@ -96,18 +96,18 @@ void entryEditor::accept() {
       path = fileInfo.symLinkTarget();
     }
 
-    entry.type = programInfo::MatchPath;
+    entry.type = ProgramInfo::MatchPath;
     entry.matchString = path.toUtf8();
   } else {
     switch (ui->titleMatchTypeCb->currentIndex()) {
     case 0:
-      entry.type = programInfo::MatchTitle;
+      entry.type = ProgramInfo::MatchTitle;
       break;
     case 1:
-      entry.type = programInfo::SubMatchTitle;
+      entry.type = ProgramInfo::SubMatchTitle;
       break;
     case 2:
-      entry.type = programInfo::RegexMatchTitle;
+      entry.type = ProgramInfo::RegexMatchTitle;
       break;
     }
 

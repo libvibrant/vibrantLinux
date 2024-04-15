@@ -11,12 +11,9 @@
 
 #include "displaytab.h"
 #include "programinfo.h"
+#include "ui_entryeditor.h"
 
-namespace Ui {
-class entryEditor;
-}
-
-class entryEditor : public QDialog {
+class EntryEditor : public QDialog {
   Q_OBJECT
 
 public:
@@ -26,9 +23,9 @@ public:
    * this is because we want to the names to show up in the same order everytime
    * the program is run and that is not guaranteed when iterating over a QHash
    */
-  explicit entryEditor(programInfo &entry, const QStringList &displayNames,
+  explicit EntryEditor(ProgramInfo &entry, const QStringList &displayNames,
                        QWidget *parent = nullptr);
-  ~entryEditor();
+  ~EntryEditor();
 
 private slots:
   void on_pathSelectBt_clicked();
@@ -40,8 +37,8 @@ private slots:
 private:
   void accept();
 
-  Ui::entryEditor *ui;
-  programInfo &entry;
+  Ui::EntryEditor *ui;
+  ProgramInfo &entry;
 };
 
 #endif // ENTRYEDITOR_H

@@ -1,6 +1,6 @@
 #include "procscanner.h"
 
-procScanner::procScanner(bool checkWindowFocus)
+ProcScanner::ProcScanner(bool checkWindowFocus)
     : checkWindowFocus(checkWindowFocus) {
   if (checkWindowFocus) {
     connectedToX = establishXCon();
@@ -10,13 +10,13 @@ procScanner::procScanner(bool checkWindowFocus)
   }
 }
 
-procScanner::~procScanner() {
+ProcScanner::~ProcScanner() {
   if (connectedToX) {
     xcb_disconnect(xcon.connection);
   }
 }
 
-bool procScanner::establishXCon() {
+bool ProcScanner::establishXCon() {
   xcon.connection = xcb_connect(nullptr, nullptr);
   if (xcb_connection_has_error(xcon.connection)) {
     xcb_disconnect(xcon.connection);
@@ -33,7 +33,7 @@ bool procScanner::establishXCon() {
   return true;
 }
 
-void procScanner::setCheckWindowFocus(bool use) {
+void ProcScanner::setCheckWindowFocus(bool use) {
   if (use) {
     if (connectedToX) {
       checkWindowFocus = use;
@@ -46,9 +46,9 @@ void procScanner::setCheckWindowFocus(bool use) {
   }
 }
 
-bool procScanner::isCheckingWindowFocus() { return checkWindowFocus; }
+bool ProcScanner::isCheckingWindowFocus() { return checkWindowFocus; }
 
-const programInfo *procScanner::getSaturation(QListWidget *watchlist) {
+const ProgramInfo *ProcScanner::getSaturation(QListWidget *watchlist) {
   if (checkWindowFocus) {
     // get the current active window
     xcb_get_property_cookie_t cookie;
@@ -74,9 +74,9 @@ const programInfo *procScanner::getSaturation(QListWidget *watchlist) {
 
     // check if the active window program is in our list
     for (int i = 0; i < watchlist->count(); i++) {
-      auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo *>();
+      auto info = watchlist->item(i)->data(Qt::UserRole).value<ProgramInfo *>();
 
-      if (info->type == programInfo::MatchPath) {
+      if (info->type == ProgramInfo::MatchPath) {
         QString procPath = QFileInfo("/proc/" + QString::number(pid) + "/exe")
                                .canonicalFilePath();
 
@@ -86,22 +86,22 @@ const programInfo *procScanner::getSaturation(QListWidget *watchlist) {
       } else {
         // use this because its a lot cleaner than copy pasting the function
         // call that frees windowTitle
-        programInfo *ret = nullptr;
+        ProgramInfo *ret = nullptr;
         auto title = QByteArray::fromRawData(windowTitle.strings,
                                              windowTitle.strings_len);
         switch (info->type) {
-        case programInfo::MatchTitle:
+        case ProgramInfo::MatchTitle:
           if (title.size() == info->matchString.size() &&
               info->matchString == title) {
             return info;
           }
           break;
-        case programInfo::SubMatchTitle:
+        case ProgramInfo::SubMatchTitle:
           if (title.contains(info->matchString)) {
             ret = info;
           }
           break;
-        case programInfo::RegexMatchTitle:
+        case ProgramInfo::RegexMatchTitle:
           QRegularExpression regex(info->matchString);
           if (regex.match(QString(title)).hasMatch()) {
             ret = info;
@@ -131,9 +131,9 @@ const programInfo *procScanner::getSaturation(QListWidget *watchlist) {
     }
 
     for (int i = 0; i < watchlist->count(); i++) {
-      auto info = watchlist->item(i)->data(Qt::UserRole).value<programInfo *>();
+      auto info = watchlist->item(i)->data(Qt::UserRole).value<ProgramInfo *>();
       for (auto &process : processes) {
-        if (info->type == programInfo::MatchPath) {
+        if (info->type == ProgramInfo::MatchPath) {
           if (process == info->matchString) {
             return info;
           }

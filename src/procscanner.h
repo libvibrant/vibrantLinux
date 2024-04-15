@@ -11,13 +11,13 @@
 
 #include "programinfo.h"
 
-class procScanner {
+class ProcScanner {
 public:
-  procScanner(bool checkWindowFocus);
-  ~procScanner();
+  ProcScanner(bool checkWindowFocus);
+  ~ProcScanner();
 
   // if this returns nullptr it means no programs in the watch list are running
-  const programInfo *getSaturation(QListWidget *watchlist);
+  const ProgramInfo *getSaturation(QListWidget *watchlist);
 
   bool establishXCon();
 

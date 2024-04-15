@@ -48,7 +48,7 @@ private:
   vibrant_instance *instance;
   vibrant_controller *controllers_arr;
   size_t controllers_size;
-  procScanner scanner;
+  ProcScanner scanner;
 
   QStringList displays;
   QHash<QString, controller> controllers;

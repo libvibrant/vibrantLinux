@@ -12,8 +12,8 @@
 
 const int CURRENT_CONFIG_VER = 2;
 
-mainWindow::mainWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::mainWindow) {
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
 
   m_configDir =
@@ -30,7 +30,7 @@ mainWindow::mainWindow(QWidget *parent)
   systray.setIcon(icon);
 
   connect(&systray, &QSystemTrayIcon::activated, this,
-          &mainWindow::iconActivated);
+          &MainWindow::iconActivated);
 
   systrayMenu.addAction(ui->actionShowHideWindow);
   systrayMenu.addAction(ui->actionExit);
@@ -41,7 +41,7 @@ mainWindow::mainWindow(QWidget *parent)
   qDebug() << "Detected displays:" << displayNames;
 
   setupFromConfig();
-  ui->actionRunOnStartup->setChecked(autostart::isEnabled());
+  ui->actionRunOnStartup->setChecked(Autostart::isEnabled());
 
   for (int i = 0; i < ui->displays->count(); i++) {
     auto tab = ui->displays->widget(i);
@@ -50,18 +50,18 @@ mainWindow::mainWindow(QWidget *parent)
 
     auto dpyTab = dynamic_cast<DisplayTab *>(ui->displays->widget(i));
     connect(dpyTab, &DisplayTab::onSaturationChange, this,
-            &mainWindow::defaultSaturationChanged);
+            &MainWindow::defaultSaturationChanged);
   }
 
   systray.show();
 
-  connect(&timer, &QTimer::timeout, this, &mainWindow::updateSaturation);
+  connect(&timer, &QTimer::timeout, this, &MainWindow::updateSaturation);
   timer.start(1000);
 
   m_loaded = true;
 }
 
-mainWindow::~mainWindow() {
+MainWindow::~MainWindow() {
   QListWidgetItem *item;
   while ((item = ui->programs->item(0)) != nullptr) {
     removeEntry(item);
@@ -77,7 +77,7 @@ mainWindow::~mainWindow() {
   delete ui;
 }
 
-void mainWindow::setupFromConfig() {
+void MainWindow::setupFromConfig() {
   QJsonObject settings;
 
   // keep in a vector for now since we'll probably be searching through them,
@@ -158,7 +158,7 @@ void mainWindow::setupFromConfig() {
       const auto &programSettings = programEntry.toObject();
       auto programMatch = programSettings["matchString"].toString();
       auto programType =
-          programInfo::stringToEntryType(programSettings["type"].toString());
+          ProgramInfo::stringToEntryType(programSettings["type"].toString());
 
       qDebug() << "Found program" << programSettings["matchString"]
                << "in config";
@@ -184,7 +184,7 @@ void mainWindow::setupFromConfig() {
         }
         vibranceValues.insert(displayName, displaySaturation);
       }
-      addEntry(programInfo(programType, programMatch, vibranceValues));
+      addEntry(ProgramInfo(programType, programMatch, vibranceValues));
     }
   }
 
@@ -197,7 +197,7 @@ void mainWindow::setupFromConfig() {
   }
 }
 
-void mainWindow::writeConfig() {
+void MainWindow::writeConfig() {
   if (!m_loaded) {
     // writeConfig can be called while we are loading the config.
     // Not everything might be loaded by now, so let's ignore this
@@ -231,12 +231,12 @@ void mainWindow::writeConfig() {
   // convert programs to json array
   for (int i = 0; i < ui->programs->count(); i++) {
     QListWidgetItem *item = ui->programs->item(i);
-    programInfo *info = item->data(Qt::UserRole).value<programInfo *>();
+    ProgramInfo *info = item->data(Qt::UserRole).value<ProgramInfo *>();
 
     QJsonObject program;
     QJsonArray programVibrance;
 
-    program.insert("type", programInfo::entryTypeToString(info->type));
+    program.insert("type", ProgramInfo::entryTypeToString(info->type));
     program.insert("matchString", QString(info->matchString));
 
     for (auto i = info->saturationVals.begin(); i != info->saturationVals.end();
@@ -265,15 +265,15 @@ void mainWindow::writeConfig() {
   settingsFile.close();
 }
 
-void mainWindow::on_actionRunOnStartup_triggered(bool checked) {
+void MainWindow::on_actionRunOnStartup_triggered(bool checked) {
   if (checked) {
-    if (!autostart::enable()) {
+    if (!Autostart::enable()) {
       ui->actionRunOnStartup->setChecked(false);
       QMessageBox::warning(this, "Failed to create file",
                            "Failed to create autostart file");
     }
   } else {
-    if (!autostart::disable()) {
+    if (!Autostart::disable()) {
       ui->actionRunOnStartup->setChecked(true);
       QMessageBox::warning(this, "Failed to remove file",
                            "Failed to remove autostart file");
@@ -281,15 +281,15 @@ void mainWindow::on_actionRunOnStartup_triggered(bool checked) {
   }
 }
 
-void mainWindow::addEntry(programInfo info) {
+void MainWindow::addEntry(ProgramInfo info) {
   QListWidgetItem *item;
-  if (info.type == programInfo::entryType::MatchPath) {
+  if (info.type == ProgramInfo::EntryType::MatchPath) {
     item = new (std::nothrow)
-        QListWidgetItem(programInfo::exeNameFromPath(info.matchString));
+        QListWidgetItem(ProgramInfo::exeNameFromPath(info.matchString));
   } else {
     item = new (std::nothrow) QListWidgetItem(info.matchString);
   }
-  auto itemInfo = new (std::nothrow) programInfo{info};
+  auto itemInfo = new (std::nothrow) ProgramInfo{info};
 
   auto alloc_err = "Failed to allocate memory for new item entry";
   if (item == nullptr || itemInfo == nullptr) {
@@ -301,21 +301,21 @@ void mainWindow::addEntry(programInfo info) {
   ui->programs->addItem(item);
 }
 
-void mainWindow::removeEntry(QListWidgetItem *item) {
+void MainWindow::removeEntry(QListWidgetItem *item) {
   ui->programs->takeItem(ui->programs->row(item));
-  auto info = item->data(Qt::UserRole).value<programInfo *>();
+  auto info = item->data(Qt::UserRole).value<ProgramInfo *>();
 
   delete info;
   delete item;
 }
 
-void mainWindow::updateSaturation() { manager.updateSaturation(ui->programs); }
+void MainWindow::updateSaturation() { manager.updateSaturation(ui->programs); }
 
-void mainWindow::defaultSaturationChanged(const QString &name, int value) {
+void MainWindow::defaultSaturationChanged(const QString &name, int value) {
   manager.setDefaultDisplaySaturation(name, value);
 }
 
-void mainWindow::on_vibranceFocusToggle_toggled(bool checked) {
+void MainWindow::on_vibranceFocusToggle_toggled(bool checked) {
   manager.checkWindowFocus(checked);
   // user tried to turn on ewmh features but programScanner failed to set it up
   if (checked) {
@@ -331,18 +331,18 @@ void mainWindow::on_vibranceFocusToggle_toggled(bool checked) {
   writeConfig();
 }
 
-void mainWindow::on_addProgram_clicked() {
-  programInfo info(programInfo::entryType::MatchPath, "",
+void MainWindow::on_addProgram_clicked() {
+  ProgramInfo info(ProgramInfo::EntryType::MatchPath, "",
                    QHash<QString, int>());
 
-  entryEditor editor(info, displayNames, this);
+  EntryEditor editor(info, displayNames, this);
   if (editor.exec() == QDialog::Accepted) {
     addEntry(info);
     writeConfig();
   }
 }
 
-void mainWindow::on_delProgram_clicked() {
+void MainWindow::on_delProgram_clicked() {
   auto items = ui->programs->selectedItems();
   if (items.size()) {
     for (auto &item : items) {
@@ -352,14 +352,14 @@ void mainWindow::on_delProgram_clicked() {
   }
 }
 
-void mainWindow::on_programs_doubleClicked(const QModelIndex &index) {
+void MainWindow::on_programs_doubleClicked(const QModelIndex &index) {
   QListWidgetItem *item = ui->programs->item(index.row());
-  auto info = item->data(Qt::UserRole).value<programInfo *>();
+  auto info = item->data(Qt::UserRole).value<ProgramInfo *>();
 
-  entryEditor editor(*info, displayNames, this);
+  EntryEditor editor(*info, displayNames, this);
   if (editor.exec() == QDialog::Accepted) {
-    if (info->type == programInfo::entryType::MatchPath) {
-      item->setText(programInfo::exeNameFromPath(info->matchString));
+    if (info->type == ProgramInfo::EntryType::MatchPath) {
+      item->setText(ProgramInfo::exeNameFromPath(info->matchString));
     } else {
       item->setText(info->matchString);
     }
@@ -368,17 +368,17 @@ void mainWindow::on_programs_doubleClicked(const QModelIndex &index) {
   }
 }
 
-void mainWindow::on_actionShowHideWindow_triggered() {
+void MainWindow::on_actionShowHideWindow_triggered() {
   setVisible(!isVisible());
 }
 
-void mainWindow::on_actionExit_triggered() {
+void MainWindow::on_actionExit_triggered() {
   writeConfig();
   systray.hide();
   close();
 }
 
-void mainWindow::on_actionAbout_triggered() {
+void MainWindow::on_actionAbout_triggered() {
   QMessageBox::about(
       this, "About",
       QString("vibrantLinux is a program to automatically set the color "
@@ -391,7 +391,7 @@ void mainWindow::on_actionAbout_triggered() {
           .arg(VIBRANT_LINUX_VERSION));
 }
 
-void mainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
+void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason) {
   if (reason == QSystemTrayIcon::ActivationReason::Trigger) {
     if (!isVisible()) {
       show();

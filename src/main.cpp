@@ -30,7 +30,7 @@ int main(int argc, char *argv[]) {
   parser.addOption(QCommandLineOption("hidden"));
   parser.parse(QCoreApplication::arguments());
 
-  mainWindow w;
+  MainWindow w;
   if (parser.isSet(("hidden"))) {
     w.systray.show();
     w.hide();

@@ -15,9 +15,9 @@ QString autostartFilePath() {
   return autostartDir.filePath(filename);
 }
 
-bool autostart::isEnabled() { return QFileInfo::exists(autostartFilePath()); }
+bool Autostart::isEnabled() { return QFileInfo::exists(autostartFilePath()); }
 
-bool autostart::enable() {
+bool Autostart::enable() {
   auto autostartFileInfo = QFileInfo(autostartFilePath());
 
   auto autostartDir = autostartFileInfo.dir();
@@ -67,4 +67,4 @@ bool autostart::enable() {
   return false;
 }
 
-bool autostart::disable() { return QFile::remove(autostartFilePath()); }
+bool Autostart::disable() { return QFile::remove(autostartFilePath()); }

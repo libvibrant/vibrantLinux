@@ -12,17 +12,14 @@
 #include "displaymanager.h"
 #include "displaytab.h"
 #include "entryeditor.h"
+#include "ui_mainwindow.h"
 
-namespace Ui {
-class mainWindow;
-}
-
-class mainWindow : public QMainWindow {
+class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  explicit mainWindow(QWidget *parent = nullptr);
-  ~mainWindow();
+  explicit MainWindow(QWidget *parent = nullptr);
+  ~MainWindow();
 
   QSystemTrayIcon systray;
 
@@ -31,10 +28,10 @@ private:
   QJsonObject generateConfig();
   void writeConfig();
 
-  void addEntry(programInfo info);
+  void addEntry(ProgramInfo info);
   void removeEntry(QListWidgetItem *item);
 
-  Ui::mainWindow *ui;
+  Ui::MainWindow *ui;
 
   DisplayManager manager;
   QStringList displayNames;

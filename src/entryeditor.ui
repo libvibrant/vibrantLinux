@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>entryEditor</class>
- <widget class="QDialog" name="entryEditor">
+ <class>EntryEditor</class>
+ <widget class="QDialog" name="EntryEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
