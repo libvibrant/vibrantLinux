@@ -7,9 +7,9 @@
 #include <QRegularExpression>
 #include <QString>
 
-#include "programinfo.h"
-
 #include <xcb/xcb_ewmh.h>
+
+#include "programinfo.h"
 
 class procScanner {
 public:

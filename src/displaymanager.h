@@ -5,7 +5,6 @@
 #include <QListWidget>
 #include <QStringList>
 
-#include <exception>
 #include <vibrant/vibrant.h>
 
 #undef Bool
@@ -22,10 +21,11 @@
 
 #include "procscanner.h"
 
-class displayManager {
+class DisplayManager : QObject {
+  Q_OBJECT
 public:
-  displayManager();
-  ~displayManager();
+  DisplayManager();
+  ~DisplayManager();
 
   QStringList getDisplayNames();
   int getDisplaySaturation(const QString &name);
@@ -35,6 +35,7 @@ public:
   void checkWindowFocus(bool use);
   bool isCheckingWindowFocus();
 
+public slots:
   // creates or updates an entry in the watchlist
   void setDefaultDisplaySaturation(const QString &name, int value);
 

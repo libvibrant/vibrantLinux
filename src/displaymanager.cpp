@@ -1,6 +1,6 @@
 #include "displaymanager.h"
 
-displayManager::displayManager() : scanner(true) {
+DisplayManager::DisplayManager() : scanner(true) {
   auto err = vibrant_instance_new(&instance, nullptr);
   switch (err) {
   case vibrant_NoError:
@@ -22,22 +22,21 @@ displayManager::displayManager() : scanner(true) {
   }
 }
 
-displayManager::~displayManager() {}
+DisplayManager::~DisplayManager() { vibrant_instance_free(&instance); }
 
-QStringList displayManager::getDisplayNames() { return displays; }
+QStringList DisplayManager::getDisplayNames() { return displays; }
 
-int displayManager::getDisplaySaturation(const QString &name) {
+int DisplayManager::getDisplaySaturation(const QString &name) {
   return vibrant_controller_get_saturation(controllers[name].v_controller) *
          100;
 }
 
-void displayManager::updateSaturation(QListWidget *watchlist) {
+void DisplayManager::updateSaturation(QListWidget *watchlist) {
   auto info = scanner.getSaturation(watchlist);
   if (info != nullptr) {
-    for (auto it = info->saturationVals.begin();
-         it != info->saturationVals.end(); it++) {
-      vibrant_controller_set_saturation(controllers[it.key()].v_controller,
-                                        (double)it.value() / 100);
+    for (auto entry : info->saturationVals.asKeyValueRange()) {
+      vibrant_controller_set_saturation(controllers[entry.first].v_controller,
+                                        (double)entry.second / 100);
     }
   } else {
     for (auto controller : controllers) {
@@ -47,15 +46,15 @@ void displayManager::updateSaturation(QListWidget *watchlist) {
   }
 }
 
-void displayManager::checkWindowFocus(bool use) {
+void DisplayManager::checkWindowFocus(bool use) {
   scanner.setCheckWindowFocus(use);
 }
 
-bool displayManager::isCheckingWindowFocus() {
+bool DisplayManager::isCheckingWindowFocus() {
   return scanner.isCheckingWindowFocus();
 }
 
-void displayManager::setDefaultDisplaySaturation(const QString &name,
+void DisplayManager::setDefaultDisplaySaturation(const QString &name,
                                                  int value) {
   controllers[name].defaultSaturation = value;
 }

@@ -8,6 +8,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QStandardPaths>
+#include <algorithm>
 
 const int CURRENT_CONFIG_VER = 2;
 
@@ -19,6 +20,8 @@ mainWindow::mainWindow(QWidget *parent)
       QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
   QDir configDir(m_configDir);
   m_configPath = configDir.filePath("vibrantLinux.internal");
+
+  qDebug() << "Resolved config path:" << m_configPath;
 
   QIcon icon =
       QIcon::fromTheme("io.github.libvibrant.vibrantLinux",
@@ -34,6 +37,9 @@ mainWindow::mainWindow(QWidget *parent)
   systray.setContextMenu(&systrayMenu);
 
   displayNames = manager.getDisplayNames();
+
+  qDebug() << "Detected displays:" << displayNames;
+
   setupFromConfig();
   ui->actionRunOnStartup->setChecked(autostart::isEnabled());
 
@@ -42,8 +48,8 @@ mainWindow::mainWindow(QWidget *parent)
     if (tab == ui->noDisplaysTab)
       continue;
 
-    auto dpyTab = dynamic_cast<displayTab *>(ui->displays->widget(i));
-    connect(dpyTab, &displayTab::onSaturationChange, this,
+    auto dpyTab = dynamic_cast<DisplayTab *>(ui->displays->widget(i));
+    connect(dpyTab, &DisplayTab::onSaturationChange, this,
             &mainWindow::defaultSaturationChanged);
   }
 
@@ -61,8 +67,8 @@ mainWindow::~mainWindow() {
     removeEntry(item);
   }
 
-  displayTab *tmp;
-  while ((tmp = dynamic_cast<displayTab *>(ui->displays->widget(0))) !=
+  DisplayTab *tmp;
+  while ((tmp = dynamic_cast<DisplayTab *>(ui->displays->widget(0))) !=
          nullptr) {
     ui->displays->removeTab(0);
     delete tmp;
@@ -76,24 +82,16 @@ void mainWindow::setupFromConfig() {
 
   // keep in a vector for now since we'll probably be searching through them,
   // add them to ui->displays at the end
-  std::vector<displayTab *> tabs;
+  std::vector<DisplayTab *> tabs;
   tabs.reserve(displayNames.size());
   auto alloc_err = "Failed to allocate memory for display tabs";
   for (auto &name : displayNames) {
-    displayTab *dpyTab = new (std::nothrow) displayTab(name);
-    if (dpyTab == nullptr) {
-      displayTab *tmp;
-      while ((tmp = dynamic_cast<displayTab *>(ui->displays->widget(0))) !=
-             nullptr) {
-        ui->displays->removeTab(0);
-        delete tmp;
-      }
-
+    auto dpyTab =
+        new DisplayTab(name, manager.getDisplaySaturation(name), this);
+    if (!dpyTab) {
       QMessageBox::warning(this, "Failed to create display tab", alloc_err);
       throw std::runtime_error(alloc_err);
     }
-
-    dpyTab->setSaturation(manager.getDisplaySaturation(name));
     tabs.push_back(dpyTab);
   }
 
@@ -107,6 +105,8 @@ void mainWindow::setupFromConfig() {
     settingsFile.close();
 
     configVersion = settings.value("configVersion").toInt(-1);
+  } else {
+    qDebug() << "Config doesn't exist";
   }
 
   // this is unused for now, but we'll use it later for whenever the config
@@ -127,96 +127,64 @@ void mainWindow::setupFromConfig() {
   }
 
   {
-    auto configDisplaysArr = settings.value("displays").toArray(QJsonArray());
+    for (const auto &displayEntry : settings.value("displays").toArray()) {
+      const auto &displaySettings = displayEntry.toObject();
+      const auto displayName = displaySettings["name"].toString();
+      const auto displaySaturation = displaySettings["vibrance"].toInt();
 
-    if (monitorSetupChanged(configDisplaysArr)) {
-      // displayNames that have carried over from the setup change
-      std::vector<displayTab *> sameDisplays;
-      for (auto tab : tabs) {
-        for (auto configDpyRef : configDisplaysArr) {
-          auto configDpy = configDpyRef.toObject();
-          if (tab->getName() == configDpy["name"].toString()) {
-            sameDisplays.push_back(tab);
+      qDebug() << "Found display" << displayName << "in config";
 
-            int saturation = configDpy["vibrance"].toInt();
-            tab->setSaturation(saturation);
-            manager.setDefaultDisplaySaturation(tab->getName(), saturation);
-          }
-        }
+      const auto tab =
+          std::find_if(tabs.begin(), tabs.end(), [&displayName](auto tab) {
+            return tab->name == displayName;
+          });
+      if (tab == tabs.end()) {
+        qDebug() << "Display" << displayName
+                 << "not found on display server. Configuration value:"
+                 << displaySettings;
+        continue;
       }
 
-      for (auto programRef : settings["programs"].toArray()) {
-        QJsonObject program = programRef.toObject();
-        QHash<QString, int> vibranceVals;
-        auto type = programInfo::stringToEntryType(program["type"].toString());
-        ;
+      (*tab)->setSaturation(displaySaturation);
+      manager.setDefaultDisplaySaturation(displayName, displaySaturation);
+      connect(*tab, &DisplayTab::onSaturationChange,
+              [this](const QString &name, int value) {
+                manager.setDefaultDisplaySaturation(name, value);
+              });
+    }
+  }
+  {
+    for (const auto &programEntry : settings.value("programs").toArray()) {
+      const auto &programSettings = programEntry.toObject();
+      auto programMatch = programSettings["matchString"].toString();
+      auto programType =
+          programInfo::stringToEntryType(programSettings["type"].toString());
 
-        for (auto vibranceRef : program["vibrance"].toArray()) {
-          QJsonObject vibrance = vibranceRef.toObject();
-          auto name = vibrance["name"].toString();
-          // check if name is in our sameDisplays
-          auto findTabFn = [name](displayTab *tab) {
-            return name == tab->getName();
-          };
-          auto tab =
-              std::find_if(sameDisplays.begin(), sameDisplays.end(), findTabFn);
+      qDebug() << "Found program" << programSettings["matchString"]
+               << "in config";
 
-          if (tab != sameDisplays.end()) {
-            // old config stored values in the range of [0, 400]
-            int val = vibrance["vibrance"].toInt();
-            vibranceVals.insert(name, val);
-          } else {
-            /*
-             * tab is not in sameDisplays, its either a new display or a display
-             * that was removed check if we have the display, if we do then set
-             * its saturation the displays current saturation if not just move
-             * one
-             */
+      QHash<QString, int> vibranceValues;
+      for (auto displayEntry : programSettings["vibrance"].toArray()) {
+        const auto &displaySettings = displayEntry.toObject();
+        const auto displayName = displaySettings["name"].toString();
+        const auto displaySaturation = displaySettings["vibrance"].toInt();
 
-            // if true then this is a new display, add it to the programs info,
-            // if not we'll just toss it away
-            if ((tab = std::find_if(tabs.begin(), tabs.end(), findTabFn)) !=
-                tabs.end()) {
-              vibranceVals.insert(name, (*tab)->getSaturation());
-            }
-          }
+        qDebug() << "Found display" << displayName << "for program"
+                 << programMatch << "in config";
+
+        const auto tab =
+            std::find_if(tabs.begin(), tabs.end(), [&displayName](auto tab) {
+              return tab->name == displayName;
+            });
+        if (tab == tabs.end()) {
+          qDebug() << "Display" << displayName << "for program" << programMatch
+                   << "not found on display server. Configuration value:"
+                   << displaySettings;
+          continue;
         }
-
-        addEntry(
-            programInfo(type, program["matchString"].toString(), vibranceVals));
+        vibranceValues.insert(displayName, displaySaturation);
       }
-    } else {
-      for (auto tab : tabs) {
-        for (auto configDpyRef : configDisplaysArr) {
-          auto configDpy = configDpyRef.toObject();
-          auto name = configDpy["name"].toString();
-          if (tab->getName() == name) {
-            int saturation = configDpy["vibrance"].toInt();
-            tab->setSaturation(saturation);
-            manager.setDefaultDisplaySaturation(name, saturation);
-          }
-        }
-      }
-
-      auto configProgramsArr = settings.value("programs").toArray(QJsonArray());
-
-      for (auto programRef : configProgramsArr) {
-        QJsonObject program = programRef.toObject();
-        QHash<QString, int> vibranceVals;
-        auto type = programInfo::stringToEntryType(program["type"].toString());
-        ;
-
-        for (auto vibranceRef : program["vibrance"].toArray()) {
-          QJsonObject vibrance = vibranceRef.toObject();
-          // old config stored values in the range of [-100, 100]
-          int val = vibrance["vibrance"].toInt();
-
-          vibranceVals.insert(vibrance["name"].toString(), val);
-        }
-
-        addEntry(
-            programInfo(type, program["matchString"].toString(), vibranceVals));
-      }
+      addEntry(programInfo(programType, programMatch, vibranceValues));
     }
   }
 
@@ -225,30 +193,18 @@ void mainWindow::setupFromConfig() {
     ui->displays->removeTab(0);
   }
   for (auto tab : tabs) {
-    ui->displays->addTab(tab, tab->getName());
+    ui->displays->addTab(tab, tab->name);
   }
-}
-
-bool mainWindow::monitorSetupChanged(const QJsonArray &configDisplays) {
-  if (configDisplays.size() == displayNames.size()) {
-    for (auto dpy : configDisplays) {
-      if (!displayNames.contains(dpy.toObject()["name"].toString())) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  return true;
 }
 
 void mainWindow::writeConfig() {
   if (!m_loaded) {
     // writeConfig can be called while we are loading the config.
     // Not everything might be loaded by now, so let's ignore this
+    qWarning() << "Refusing to save config";
     return;
   }
+  qDebug() << "Saving config";
 
   QJsonObject obj;
   obj.insert("configVersion", CURRENT_CONFIG_VER);
@@ -259,9 +215,9 @@ void mainWindow::writeConfig() {
     auto tab = ui->displays->widget(i);
     if (tab == ui->noDisplaysTab)
       continue;
-    displayTab *dpy = dynamic_cast<displayTab *>(tab);
+    DisplayTab *dpy = dynamic_cast<DisplayTab *>(tab);
     QJsonObject tmpObj;
-    tmpObj.insert("name", dpy->getName());
+    tmpObj.insert("name", dpy->name);
     tmpObj.insert("vibrance", dpy->getSaturation());
 
     tmpArr.append(tmpObj);
@@ -417,6 +373,7 @@ void mainWindow::on_actionShowHideWindow_triggered() {
 }
 
 void mainWindow::on_actionExit_triggered() {
+  writeConfig();
   systray.hide();
   close();
 }
@@ -424,7 +381,7 @@ void mainWindow::on_actionExit_triggered() {
 void mainWindow::on_actionAbout_triggered() {
   QMessageBox::about(
       this, "About",
-      QString("vigrantLinux is a program to automatically set the color "
+      QString("vibrantLinux is a program to automatically set the color "
               "saturation "
               "of specific monitors depending on what program is current "
               "running.\n\n"

@@ -33,12 +33,12 @@ entryEditor::entryEditor(programInfo &entry, const QStringList &displayNames,
   }
 
   for (auto &name : displayNames) {
-    auto *dpyTab = new (std::nothrow) displayTab(name, ui->displays);
+    auto *dpyTab = new (std::nothrow)
+        DisplayTab(name, entry.saturationVals[name], ui->displays);
     if (dpyTab == nullptr) {
       throw std::runtime_error("failed to create display tab");
     }
 
-    dpyTab->setSaturation(entry.saturationVals[name]);
     ui->displays->addTab(dpyTab, name);
   }
 }
@@ -115,8 +115,8 @@ void entryEditor::accept() {
   }
 
   for (int i = 0; i < ui->displays->count(); i++) {
-    displayTab *dpyTab = dynamic_cast<displayTab *>(ui->displays->widget(i));
-    entry.saturationVals[dpyTab->getName()] = dpyTab->getSaturation();
+    DisplayTab *dpyTab = dynamic_cast<DisplayTab *>(ui->displays->widget(i));
+    entry.saturationVals[dpyTab->name] = dpyTab->getSaturation();
   }
 
   QDialog::accept();

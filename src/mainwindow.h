@@ -28,8 +28,6 @@ public:
 
 private:
   void setupFromConfig();
-  // helper functions for setupFromConfig
-  bool monitorSetupChanged(const QJsonArray &configDisplays);
   QJsonObject generateConfig();
   void writeConfig();
 
@@ -38,7 +36,7 @@ private:
 
   Ui::mainWindow *ui;
 
-  displayManager manager;
+  DisplayManager manager;
   QStringList displayNames;
   QTimer timer;
 
