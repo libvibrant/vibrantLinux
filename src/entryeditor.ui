@@ -96,7 +96,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>entryEditor</receiver>
+   <receiver>EntryEditor</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -112,7 +112,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>entryEditor</receiver>
+   <receiver>EntryEditor</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
