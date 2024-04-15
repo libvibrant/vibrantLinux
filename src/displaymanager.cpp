@@ -15,7 +15,7 @@ DisplayManager::DisplayManager() : scanner(true) {
                                    &controllers_size);
 
   for (size_t i = 0; i < controllers_size; i++) {
-    auto name = controllers_arr[i].info->name;
+    auto *name = controllers_arr[i].info->name;
 
     displays.append(name);
     controllers.insert(name, (controller){controllers_arr + i, 100});
@@ -24,15 +24,15 @@ DisplayManager::DisplayManager() : scanner(true) {
 
 DisplayManager::~DisplayManager() { vibrant_instance_free(&instance); }
 
-QStringList DisplayManager::getDisplayNames() { return displays; }
+auto DisplayManager::getDisplayNames() -> QStringList { return displays; }
 
-int DisplayManager::getDisplaySaturation(const QString &name) {
+auto DisplayManager::getDisplaySaturation(const QString &name) -> int {
   return vibrant_controller_get_saturation(controllers[name].v_controller) *
          100;
 }
 
 void DisplayManager::updateSaturation(QListWidget *watchlist) {
-  auto info = scanner.getSaturation(watchlist);
+  const auto *info = scanner.getSaturation(watchlist);
   if (info != nullptr) {
     for (auto entry : info->saturationVals.asKeyValueRange()) {
       vibrant_controller_set_saturation(controllers[entry.first].v_controller,
@@ -50,7 +50,7 @@ void DisplayManager::checkWindowFocus(bool use) {
   scanner.setCheckWindowFocus(use);
 }
 
-bool DisplayManager::isCheckingWindowFocus() {
+auto DisplayManager::isCheckingWindowFocus() -> bool {
   return scanner.isCheckingWindowFocus();
 }
 

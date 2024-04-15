@@ -16,16 +16,16 @@ ProcScanner::~ProcScanner() {
   }
 }
 
-bool ProcScanner::establishXCon() {
+auto ProcScanner::establishXCon() -> bool {
   xcon.connection = xcb_connect(nullptr, nullptr);
-  if (xcb_connection_has_error(xcon.connection)) {
+  if (xcb_connection_has_error(xcon.connection) != 0) {
     xcb_disconnect(xcon.connection);
     return false;
   }
 
   xcb_intern_atom_cookie_t *cookies;
   cookies = xcb_ewmh_init_atoms(xcon.connection, &xcon);
-  if (!xcb_ewmh_init_atoms_replies(&xcon, cookies, nullptr)) {
+  if (xcb_ewmh_init_atoms_replies(&xcon, cookies, nullptr) == 0u) {
     xcb_disconnect(xcon.connection);
     return false;
   }
@@ -46,9 +46,11 @@ void ProcScanner::setCheckWindowFocus(bool use) {
   }
 }
 
-bool ProcScanner::isCheckingWindowFocus() { return checkWindowFocus; }
+auto ProcScanner::isCheckingWindowFocus() const -> bool {
+  return checkWindowFocus;
+}
 
-const ProgramInfo *ProcScanner::getSaturation(QListWidget *watchlist) {
+auto ProcScanner::getSaturation(QListWidget *watchlist) -> const ProgramInfo * {
   if (checkWindowFocus) {
     // get the current active window
     xcb_get_property_cookie_t cookie;
@@ -56,25 +58,27 @@ const ProgramInfo *ProcScanner::getSaturation(QListWidget *watchlist) {
     xcb_generic_error_t *e = nullptr;
 
     cookie = xcb_ewmh_get_active_window(&xcon, 0);
-    if (!xcb_ewmh_get_active_window_reply(&xcon, cookie, &activeWindow, &e)) {
+    if (xcb_ewmh_get_active_window_reply(&xcon, cookie, &activeWindow, &e) ==
+        0u) {
       return nullptr;
     }
 
     uint32_t pid = 0;
     cookie = xcb_ewmh_get_wm_pid(&xcon, activeWindow);
-    if (!xcb_ewmh_get_wm_pid_reply(&xcon, cookie, &pid, &e)) {
+    if (xcb_ewmh_get_wm_pid_reply(&xcon, cookie, &pid, &e) == 0u) {
       return nullptr;
     }
 
     xcb_ewmh_get_utf8_strings_reply_t windowTitle;
     cookie = xcb_ewmh_get_wm_name(&xcon, activeWindow);
-    if (!xcb_ewmh_get_wm_name_reply(&xcon, cookie, &windowTitle, &e)) {
+    if (xcb_ewmh_get_wm_name_reply(&xcon, cookie, &windowTitle, &e) == 0u) {
       return nullptr;
     }
 
     // check if the active window program is in our list
     for (int i = 0; i < watchlist->count(); i++) {
-      auto info = watchlist->item(i)->data(Qt::UserRole).value<ProgramInfo *>();
+      auto *info =
+          watchlist->item(i)->data(Qt::UserRole).value<ProgramInfo *>();
 
       if (info->type == ProgramInfo::MatchPath) {
         QString procPath = QFileInfo("/proc/" + QString::number(pid) + "/exe")
@@ -109,7 +113,7 @@ const ProgramInfo *ProcScanner::getSaturation(QListWidget *watchlist) {
           break;
         }
 
-        if (ret) {
+        if (ret != nullptr) {
           xcb_ewmh_get_utf8_strings_reply_wipe(&windowTitle);
           return ret;
         }
@@ -131,7 +135,8 @@ const ProgramInfo *ProcScanner::getSaturation(QListWidget *watchlist) {
     }
 
     for (int i = 0; i < watchlist->count(); i++) {
-      auto info = watchlist->item(i)->data(Qt::UserRole).value<ProgramInfo *>();
+      auto *info =
+          watchlist->item(i)->data(Qt::UserRole).value<ProgramInfo *>();
       for (auto &process : processes) {
         if (info->type == ProgramInfo::MatchPath) {
           if (process == info->matchString) {

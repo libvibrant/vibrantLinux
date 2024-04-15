@@ -44,11 +44,12 @@ MainWindow::MainWindow(QWidget *parent)
   ui->actionRunOnStartup->setChecked(Autostart::isEnabled());
 
   for (int i = 0; i < ui->displays->count(); i++) {
-    auto tab = ui->displays->widget(i);
-    if (tab == ui->noDisplaysTab)
+    auto *tab = ui->displays->widget(i);
+    if (tab == ui->noDisplaysTab) {
       continue;
+    }
 
-    auto dpyTab = dynamic_cast<DisplayTab *>(ui->displays->widget(i));
+    auto *dpyTab = dynamic_cast<DisplayTab *>(ui->displays->widget(i));
     connect(dpyTab, &DisplayTab::onSaturationChange, this,
             &MainWindow::defaultSaturationChanged);
   }
@@ -84,11 +85,11 @@ void MainWindow::setupFromConfig() {
   // add them to ui->displays at the end
   std::vector<DisplayTab *> tabs;
   tabs.reserve(displayNames.size());
-  auto alloc_err = "Failed to allocate memory for display tabs";
+  const auto *alloc_err = "Failed to allocate memory for display tabs";
   for (auto &name : displayNames) {
-    auto dpyTab =
+    auto *dpyTab =
         new DisplayTab(name, manager.getDisplaySaturation(name), this);
-    if (!dpyTab) {
+    if (dpyTab == nullptr) {
       QMessageBox::warning(this, "Failed to create display tab", alloc_err);
       throw std::runtime_error(alloc_err);
     }
@@ -114,8 +115,9 @@ void MainWindow::setupFromConfig() {
   if (configVersion < 0) {
     // this is useless for now, but will be used later on when config versions
     // are updated
-    auto err = "Unrecognized config version, please delete "
-               "~/.config/vibrantLinux/vibrantLinux.internal and try again";
+    const auto *err =
+        "Unrecognized config version, please delete "
+        "~/.config/vibrantLinux/vibrantLinux.internal and try again";
     QMessageBox::critical(this, "Unrecognized config version", err);
     throw std::runtime_error(err);
   }
@@ -188,11 +190,11 @@ void MainWindow::setupFromConfig() {
     }
   }
 
-  if (tabs.size() > 0) {
+  if (!tabs.empty()) {
     ui->displays->setTabBarAutoHide(false);
     ui->displays->removeTab(0);
   }
-  for (auto tab : tabs) {
+  for (auto *tab : tabs) {
     ui->displays->addTab(tab, tab->name);
   }
 }
@@ -212,10 +214,11 @@ void MainWindow::writeConfig() {
   // use to temporarily store monitor list while we add to it
   QJsonArray tmpArr;
   for (int i = 0; i < ui->displays->count(); i++) {
-    auto tab = ui->displays->widget(i);
-    if (tab == ui->noDisplaysTab)
+    auto *tab = ui->displays->widget(i);
+    if (tab == ui->noDisplaysTab) {
       continue;
-    DisplayTab *dpy = dynamic_cast<DisplayTab *>(tab);
+    }
+    auto *dpy = dynamic_cast<DisplayTab *>(tab);
     QJsonObject tmpObj;
     tmpObj.insert("name", dpy->name);
     tmpObj.insert("vibrance", dpy->getSaturation());
@@ -231,7 +234,7 @@ void MainWindow::writeConfig() {
   // convert programs to json array
   for (int i = 0; i < ui->programs->count(); i++) {
     QListWidgetItem *item = ui->programs->item(i);
-    ProgramInfo *info = item->data(Qt::UserRole).value<ProgramInfo *>();
+    auto *info = item->data(Qt::UserRole).value<ProgramInfo *>();
 
     QJsonObject program;
     QJsonArray programVibrance;
@@ -289,9 +292,9 @@ void MainWindow::addEntry(ProgramInfo info) {
   } else {
     item = new (std::nothrow) QListWidgetItem(info.matchString);
   }
-  auto itemInfo = new (std::nothrow) ProgramInfo{info};
+  auto *itemInfo = new (std::nothrow) ProgramInfo{info};
 
-  auto alloc_err = "Failed to allocate memory for new item entry";
+  const auto *alloc_err = "Failed to allocate memory for new item entry";
   if (item == nullptr || itemInfo == nullptr) {
     QMessageBox::warning(this, "Not enough memory", alloc_err);
     throw std::runtime_error(alloc_err);
@@ -303,7 +306,7 @@ void MainWindow::addEntry(ProgramInfo info) {
 
 void MainWindow::removeEntry(QListWidgetItem *item) {
   ui->programs->takeItem(ui->programs->row(item));
-  auto info = item->data(Qt::UserRole).value<ProgramInfo *>();
+  auto *info = item->data(Qt::UserRole).value<ProgramInfo *>();
 
   delete info;
   delete item;
@@ -344,7 +347,7 @@ void MainWindow::on_addProgram_clicked() {
 
 void MainWindow::on_delProgram_clicked() {
   auto items = ui->programs->selectedItems();
-  if (items.size()) {
+  if (!items.empty() != 0) {
     for (auto &item : items) {
       removeEntry(item);
     }
@@ -354,7 +357,7 @@ void MainWindow::on_delProgram_clicked() {
 
 void MainWindow::on_programs_doubleClicked(const QModelIndex &index) {
   QListWidgetItem *item = ui->programs->item(index.row());
-  auto info = item->data(Qt::UserRole).value<ProgramInfo *>();
+  auto *info = item->data(Qt::UserRole).value<ProgramInfo *>();
 
   EntryEditor editor(*info, displayNames, this);
   if (editor.exec() == QDialog::Accepted) {

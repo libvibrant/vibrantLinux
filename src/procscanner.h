@@ -22,7 +22,7 @@ public:
   bool establishXCon();
 
   void setCheckWindowFocus(bool use);
-  bool isCheckingWindowFocus();
+  bool isCheckingWindowFocus() const;
 
 private:
   std::vector<QString> processes;

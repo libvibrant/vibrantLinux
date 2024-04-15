@@ -8,16 +8,18 @@
 
 const QString filename = "io.github.libvibrant.vibrantLinux.desktop";
 
-QString autostartFilePath() {
+auto autostartFilePath() -> QString {
   QDir configDir =
       QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation);
   QDir autostartDir = configDir.filePath("autostart");
   return autostartDir.filePath(filename);
 }
 
-bool Autostart::isEnabled() { return QFileInfo::exists(autostartFilePath()); }
+auto Autostart::isEnabled() -> bool {
+  return QFileInfo::exists(autostartFilePath());
+}
 
-bool Autostart::enable() {
+auto Autostart::enable() -> bool {
   auto autostartFileInfo = QFileInfo(autostartFilePath());
 
   auto autostartDir = autostartFileInfo.dir();
@@ -67,4 +69,4 @@ bool Autostart::enable() {
   return false;
 }
 
-bool Autostart::disable() { return QFile::remove(autostartFilePath()); }
+auto Autostart::disable() -> bool { return QFile::remove(autostartFilePath()); }

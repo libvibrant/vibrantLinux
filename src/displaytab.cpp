@@ -1,10 +1,11 @@
 #include <QSlider>
 #include <QSpinBox>
+#include <utility>
 
 #include "displaytab.h"
 
 DisplayTab::DisplayTab(QString name, int initialSaturation, QWidget *parent)
-    : QWidget(parent), ui(new Ui::DisplayTab), name(name) {
+    : QWidget(parent), ui(new Ui::DisplayTab), name(std::move(name)) {
   ui->setupUi(this);
   setSaturation(initialSaturation);
 
@@ -14,7 +15,9 @@ DisplayTab::DisplayTab(QString name, int initialSaturation, QWidget *parent)
           &DisplayTab::saturationChanged);
 }
 
-int DisplayTab::getSaturation() { return ui->saturationSlider->value(); }
+auto DisplayTab::getSaturation() -> int {
+  return ui->saturationSlider->value();
+}
 
 void DisplayTab::setSaturation(int saturation) {
   ui->saturationSlider->setValue(saturation);

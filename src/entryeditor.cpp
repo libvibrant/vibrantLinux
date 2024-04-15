@@ -32,7 +32,7 @@ EntryEditor::EntryEditor(ProgramInfo &entry, const QStringList &displayNames,
     ui->titleMatchTypeCb->currentIndex();
   }
 
-  for (auto &name : displayNames) {
+  for (const auto &name : displayNames) {
     auto *dpyTab = new (std::nothrow)
         DisplayTab(name, entry.saturationVals[name], ui->displays);
     if (dpyTab == nullptr) {
@@ -58,10 +58,6 @@ void EntryEditor::on_pathSelectBt_clicked() {
   }
 
   ui->path->setText(program);
-}
-
-void EntryEditor::on_titleMatchTypeCb_currentIndexChanged(int index) {
-  switch (index) {}
 }
 
 void EntryEditor::on_pathMatchRbt_clicked() {
@@ -115,7 +111,7 @@ void EntryEditor::accept() {
   }
 
   for (int i = 0; i < ui->displays->count(); i++) {
-    DisplayTab *dpyTab = dynamic_cast<DisplayTab *>(ui->displays->widget(i));
+    auto *dpyTab = dynamic_cast<DisplayTab *>(ui->displays->widget(i));
     entry.saturationVals[dpyTab->name] = dpyTab->getSaturation();
   }
 

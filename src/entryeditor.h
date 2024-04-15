@@ -29,7 +29,6 @@ public:
 
 private slots:
   void on_pathSelectBt_clicked();
-  void on_titleMatchTypeCb_currentIndexChanged(int index);
 
   void on_pathMatchRbt_clicked();
   void on_titleMatchRbt_clicked();

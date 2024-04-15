@@ -8,7 +8,7 @@
 
 #include "mainwindow.h"
 
-int main(int argc, char *argv[]) {
+auto main(int argc, char *argv[]) -> int {
   // don't run if the program is already running
   QString vlPath = QFileInfo("/proc/" + QString::number(getpid()) + "/exe")
                        .canonicalFilePath();
@@ -38,5 +38,5 @@ int main(int argc, char *argv[]) {
     w.show();
   }
 
-  return a.exec();
+  return QApplication::exec();
 }
